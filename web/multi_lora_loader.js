@@ -406,7 +406,7 @@ function ensureStyles() {
       background: rgba(0,0,0,.62);
     }
     .volt-lora-modal {
-      width: min(1180px, calc(100vw - 48px));
+      width: min(1400px, calc(100vw - 48px));
       height: min(720px, calc(100vh - 48px));
       display: grid;
       grid-template-rows: auto auto 1fr;
@@ -446,7 +446,7 @@ function ensureStyles() {
     }
     .volt-lora-modal-body {
       display: grid;
-      grid-template-columns: 230px minmax(320px, 1fr) 340px;
+      grid-template-columns: 230px minmax(360px, 1fr) minmax(360px, 520px);
       gap: 12px;
       min-height: 0;
     }
@@ -530,9 +530,12 @@ function ensureStyles() {
       object-fit: cover;
     }
     .volt-lora-preview img {
+      display: block;
       width: 100%;
-      height: 100%;
+      height: auto;
+      max-height: none;
       object-fit: contain;
+      border-radius: 6px;
     }
     .volt-lora-item-name {
       min-width: 0;
@@ -551,14 +554,23 @@ function ensureStyles() {
       font-size: 12px;
     }
     .volt-lora-side {
-      display: grid;
-      grid-template-rows: 260px auto auto 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
       min-width: 0;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 4px;
+      overscroll-behavior: contain;
     }
     .volt-lora-preview {
       width: 100%;
-      height: 260px;
+      min-height: 180px;
+      height: auto;
+      max-height: none;
+      overflow: visible;
     }
     .volt-lora-side-name {
       min-height: 36px;
