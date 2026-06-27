@@ -230,6 +230,28 @@ function ensureStyles() {
     style.id = "volt-multi-lora-styles";
   }
   style.textContent = `
+    .volt-lora-node-root,
+    .volt-lora-backdrop {
+      --volt-bg: #090d13;
+      --volt-panel: #111820;
+      --volt-panel-2: #151d27;
+      --volt-panel-3: #1b2430;
+      --volt-border: #273444;
+      --volt-border-soft: #22303e;
+      --volt-cyan: #42d7ff;
+      --volt-cyan-soft: rgba(66, 215, 255, .22);
+      --volt-violet: #8b6fff;
+      --volt-violet-soft: rgba(139, 111, 255, .22);
+      --volt-green: #1d6f3f;
+      --volt-green-border: #2aae64;
+      --volt-red: #7c1d28;
+      --volt-red-border: #b74352;
+      --volt-text: #edf4ff;
+      --volt-text-soft: #b5c0cf;
+      --volt-muted: #738195;
+      --volt-shadow: 0 24px 72px rgba(0,0,0,.62), 0 0 0 1px rgba(66,215,255,.05);
+      --volt-glow: 0 0 18px rgba(66,215,255,.12), 0 0 24px rgba(139,111,255,.10);
+    }
     .volt-lora-node-root {
       overflow: visible !important;
     }
@@ -238,7 +260,7 @@ function ensureStyles() {
       width: 100%;
       min-width: 0;
       padding: 10px 14px 14px;
-      color: #d8d8d8;
+      color: var(--volt-text);
       font: 13px Arial, sans-serif;
       user-select: none;
       overflow: visible;
@@ -250,7 +272,7 @@ function ensureStyles() {
       align-items: center;
       margin: 0 0 8px;
       padding: 0 2px;
-      color: #8f8f8f;
+      color: var(--volt-muted);
       font-size: 12px;
       line-height: 18px;
     }
@@ -275,15 +297,20 @@ function ensureStyles() {
       justify-items: stretch;
       height: 56px;
       padding: 6px;
-      background: #202020;
-      border: 1px solid #1f7c2c;
+      background: linear-gradient(180deg, rgba(27,36,48,.96), rgba(15,22,30,.96));
+      border: 1px solid rgba(42,174,100,.72);
       border-radius: 8px;
-      box-shadow: inset 0 0 0 1px rgba(52, 148, 65, .18);
+      box-shadow: inset 0 0 0 1px rgba(66,215,255,.06), 0 0 14px rgba(42,174,100,.10);
+      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
     }
     .volt-lora-node-row.disabled {
-      border-color: #474747;
+      border-color: var(--volt-border);
       box-shadow: none;
       opacity: .72;
+    }
+    .volt-lora-node-row:hover {
+      border-color: rgba(66,215,255,.58);
+      box-shadow: inset 0 0 0 1px rgba(139,111,255,.08), 0 0 16px rgba(66,215,255,.10);
     }
     .volt-lora-switch {
       position: relative;
@@ -293,11 +320,12 @@ function ensureStyles() {
       height: 34px;
       padding: 0;
       margin: 0;
-      border: 1px solid #1c7731;
+      border: 1px solid var(--volt-green-border);
       border-radius: 999px;
-      background: #208637;
+      background: linear-gradient(180deg, #20864a, var(--volt-green));
       cursor: pointer;
-      transition: background .12s ease, border-color .12s ease;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 12px rgba(42,174,100,.14);
+      transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
     }
     .volt-lora-switch::after {
       content: "";
@@ -307,17 +335,18 @@ function ensureStyles() {
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #f4f4f4;
+      background: #e8fff5;
       transition: left .12s ease;
       box-shadow: 0 1px 4px rgba(0,0,0,.35);
     }
     .volt-lora-switch.off {
-      background: #333;
-      border-color: #555;
+      background: #29313b;
+      border-color: #526070;
+      box-shadow: none;
     }
     .volt-lora-switch.off::after {
       left: 6px;
-      background: #aaa;
+      background: #93a0b0;
     }
     .volt-lora-name,
     .volt-lora-note,
@@ -326,14 +355,21 @@ function ensureStyles() {
       width: 100%;
       min-width: 0;
       height: 38px;
-      color: #dcdcdc;
-      background: #2b2b2b;
-      border: 1px solid #444;
+      color: var(--volt-text);
+      background: rgba(18,25,34,.92);
+      border: 1px solid var(--volt-border);
       border-radius: 6px;
       outline: none;
       align-self: center;
       margin: 0;
       font-family: Arial, sans-serif;
+      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+    }
+    .volt-lora-note:focus,
+    .volt-lora-strength:focus {
+      border-color: rgba(66,215,255,.72);
+      box-shadow: 0 0 0 1px rgba(66,215,255,.13), 0 0 14px rgba(66,215,255,.10);
+      background: rgba(20,29,39,.98);
     }
     .volt-lora-name {
       display: flex;
@@ -355,8 +391,8 @@ function ensureStyles() {
     }
     .volt-lora-note {
       padding: 0 8px;
-      background: #252436;
-      border-color: #3a3658;
+      background: rgba(25,24,43,.92);
+      border-color: rgba(139,111,255,.34);
       line-height: 38px;
     }
     .volt-lora-del {
@@ -368,26 +404,30 @@ function ensureStyles() {
       height: 40px;
       padding: 0;
       margin: 0;
-      border: 1px solid #b34639;
+      border: 1px solid var(--volt-red-border);
       border-radius: 8px;
-      color: #ffd2cc;
-      background: #8a1111;
+      color: #ffe2e5;
+      background: linear-gradient(180deg, #9a202a, var(--volt-red));
       cursor: pointer;
       font-size: 24px;
       line-height: 1;
       font-family: Arial, sans-serif;
+      box-shadow: 0 0 12px rgba(183,67,82,.12);
+      transition: filter .12s ease, border-color .12s ease, box-shadow .12s ease;
     }
     .volt-lora-add {
       width: 100%;
       height: 48px;
       margin-top: 14px;
-      border: 1px solid #383838;
+      border: 1px solid rgba(139,111,255,.36);
       border-radius: 8px;
-      color: #9b84ff;
-      background: #1d1d1d;
+      color: #b7a8ff;
+      background: linear-gradient(180deg, rgba(27,36,48,.98), rgba(13,18,25,.98));
       cursor: pointer;
       font-size: 18px;
       font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(66,215,255,.05);
+      transition: color .14s ease, border-color .14s ease, box-shadow .14s ease, filter .14s ease;
     }
     .volt-lora-add:hover,
     .volt-lora-del:hover,
@@ -398,10 +438,10 @@ function ensureStyles() {
       display: grid;
       place-items: center;
       height: 56px;
-      color: #898989;
-      border: 1px dashed #454545;
+      color: var(--volt-muted);
+      border: 1px dashed var(--volt-border);
       border-radius: 8px;
-      background: #202020;
+      background: rgba(17,24,32,.82);
     }
     .volt-lora-backdrop {
       position: fixed;
@@ -409,7 +449,8 @@ function ensureStyles() {
       z-index: 99999;
       display: grid;
       place-items: center;
-      background: rgba(0,0,0,.62);
+      background: rgba(3,6,10,.70);
+      backdrop-filter: blur(6px);
     }
     .volt-lora-modal {
       width: min(1320px, calc(100vw - 48px));
@@ -418,11 +459,11 @@ function ensureStyles() {
       grid-template-rows: auto auto 1fr;
       gap: 10px;
       padding: 14px;
-      color: #e8e8e8;
-      background: #181818;
-      border: 1px solid #3c3c3c;
+      color: var(--volt-text);
+      background: linear-gradient(180deg, rgba(16,23,31,.98), rgba(8,12,18,.98));
+      border: 1px solid rgba(66,215,255,.18);
       border-radius: 10px;
-      box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      box-shadow: var(--volt-shadow);
       font: 13px Arial, sans-serif;
     }
     .volt-lora-modal-head,
@@ -435,6 +476,8 @@ function ensureStyles() {
     .volt-lora-modal-title {
       font-size: 18px;
       font-weight: 700;
+      color: var(--volt-text);
+      text-shadow: 0 0 18px rgba(66,215,255,.10);
     }
     .volt-lora-search,
     .volt-lora-modal input[type="number"],
@@ -443,12 +486,20 @@ function ensureStyles() {
       width: 100%;
       height: 34px;
       min-width: 0;
-      color: #e1e1e1;
-      background: #2b2b2b;
-      border: 1px solid #454545;
+      color: var(--volt-text);
+      background: rgba(18,25,34,.95);
+      border: 1px solid var(--volt-border);
       border-radius: 6px;
       padding: 0 10px;
       outline: none;
+      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+    }
+    .volt-lora-search:focus,
+    .volt-lora-modal input[type="number"]:focus,
+    .volt-lora-modal input[type="text"]:focus {
+      border-color: rgba(66,215,255,.68);
+      box-shadow: 0 0 0 1px rgba(66,215,255,.12), 0 0 18px rgba(66,215,255,.08);
+      background: rgba(20,29,39,.98);
     }
     .volt-lora-modal-body {
       display: grid;
@@ -458,9 +509,10 @@ function ensureStyles() {
     }
     .volt-lora-folder-list {
       overflow: auto;
-      border: 1px solid #303030;
+      border: 1px solid var(--volt-border-soft);
       border-radius: 8px;
-      background: #202020;
+      background: rgba(12,18,25,.92);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.015);
     }
     .volt-lora-folder-item {
       display: grid;
@@ -473,16 +525,19 @@ function ensureStyles() {
       padding: 7px 9px;
       box-sizing: border-box;
       border: 0;
-      border-bottom: 1px solid #303030;
-      color: #d8d8d8;
+      border-bottom: 1px solid var(--volt-border-soft);
+      color: var(--volt-text-soft);
       background: transparent;
       cursor: pointer;
       font: 13px Arial, sans-serif;
       text-align: left;
+      transition: color .14s ease, background .14s ease, box-shadow .14s ease;
     }
     .volt-lora-folder-item:hover,
     .volt-lora-folder-item.active {
-      background: #2b2b2b;
+      color: var(--volt-text);
+      background: linear-gradient(90deg, rgba(66,215,255,.10), rgba(139,111,255,.08));
+      box-shadow: inset 2px 0 0 rgba(66,215,255,.62);
     }
     .volt-lora-folder-name {
       min-width: 0;
@@ -492,15 +547,16 @@ function ensureStyles() {
       padding-left: calc(var(--folder-depth, 0) * 14px);
     }
     .volt-lora-folder-count {
-      color: #8f8f8f;
+      color: var(--volt-muted);
       font-size: 12px;
       font-variant-numeric: tabular-nums;
     }
     .volt-lora-list {
       overflow: auto;
-      border: 1px solid #303030;
+      border: 1px solid var(--volt-border-soft);
       border-radius: 8px;
-      background: #202020;
+      background: rgba(12,18,25,.92);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.015);
     }
     .volt-lora-item {
       display: grid;
@@ -508,20 +564,24 @@ function ensureStyles() {
       gap: 10px;
       align-items: center;
       padding: 8px;
-      border-bottom: 1px solid #303030;
+      border-bottom: 1px solid var(--volt-border-soft);
       cursor: pointer;
+      transition: background .14s ease, box-shadow .14s ease, transform .14s ease;
     }
-    .volt-lora-item:hover,
+    .volt-lora-item:hover {
+      background: rgba(27,36,48,.88);
+    }
     .volt-lora-item.active {
-      background: #2b2b2b;
+      background: linear-gradient(90deg, rgba(66,215,255,.10), rgba(139,111,255,.08));
+      box-shadow: inset 2px 0 0 rgba(139,111,255,.78), inset 0 0 0 1px rgba(66,215,255,.06);
     }
     .volt-lora-thumb,
     .volt-lora-preview {
       display: grid;
       place-items: center;
-      color: #777;
-      background: #121212;
-      border: 1px solid #303030;
+      color: var(--volt-muted);
+      background: #071017;
+      border: 1px solid var(--volt-border-soft);
       border-radius: 6px;
       overflow: hidden;
     }
@@ -529,6 +589,7 @@ function ensureStyles() {
       width: 64px;
       height: 64px;
       font-size: 11px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
     }
     .volt-lora-thumb img {
       width: 100%;
@@ -567,7 +628,7 @@ function ensureStyles() {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      color: #f0f0f0;
+      color: var(--volt-text);
       font-weight: 700;
     }
     .volt-lora-item-dir {
@@ -575,7 +636,7 @@ function ensureStyles() {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      color: #8f8f8f;
+      color: var(--volt-muted);
       font-size: 12px;
     }
     .volt-lora-side {
@@ -598,11 +659,13 @@ function ensureStyles() {
       justify-self: center;
       align-self: center;
       isolation: isolate;
+      border-color: rgba(139,111,255,.34);
+      box-shadow: 0 0 0 1px rgba(66,215,255,.06), 0 0 28px rgba(139,111,255,.12);
     }
     .volt-lora-side-name {
       min-height: 36px;
       overflow-wrap: anywhere;
-      color: #f0f0f0;
+      color: var(--volt-text);
       font-weight: 700;
       line-height: 1.35;
     }
@@ -610,10 +673,10 @@ function ensureStyles() {
       min-height: 92px;
       overflow: auto;
       padding: 8px;
-      border: 1px solid #303030;
+      border: 1px solid var(--volt-border-soft);
       border-radius: 8px;
-      background: #202020;
-      color: #bbb;
+      background: rgba(12,18,25,.92);
+      color: var(--volt-text-soft);
     }
     .volt-lora-chip {
       display: grid;
@@ -636,17 +699,18 @@ function ensureStyles() {
       height: 34px;
       border-radius: 7px;
       cursor: pointer;
-      border: 1px solid #333;
-      background: #1f1f1f;
-      color: #e5e5e5;
+      border: 1px solid var(--volt-border);
+      background: rgba(17,24,32,.96);
+      color: var(--volt-text);
       font-weight: 700;
+      transition: filter .12s ease, border-color .12s ease, box-shadow .12s ease, background .12s ease;
     }
     .volt-lora-chip button {
       width: 28px;
       height: 24px;
-      color: #ffd7d7;
-      background: #711c1c;
-      border-color: #904343;
+      color: #ffdfe3;
+      background: var(--volt-red);
+      border-color: var(--volt-red-border);
     }
     .volt-lora-side-actions {
       display: grid;
@@ -654,18 +718,35 @@ function ensureStyles() {
       gap: 8px;
     }
     .volt-lora-load {
-      color: #d9ffe0;
-      background: #1f622c;
-      border-color: #2f8c42;
+      color: #dcffe8;
+      background: linear-gradient(180deg, #227547, var(--volt-green));
+      border-color: var(--volt-green-border);
+      box-shadow: 0 0 14px rgba(42,174,100,.12);
     }
     .volt-lora-remove {
-      color: #ffd7d7;
-      background: #711c1c;
-      border-color: #904343;
+      color: #ffdfe3;
+      background: linear-gradient(180deg, #932630, var(--volt-red));
+      border-color: var(--volt-red-border);
+      box-shadow: 0 0 14px rgba(183,67,82,.10);
+    }
+    .volt-lora-close:hover {
+      border-color: rgba(66,215,255,.46);
+      box-shadow: 0 0 16px rgba(66,215,255,.10);
+      background: rgba(27,36,48,.98);
+    }
+    .volt-lora-load:hover {
+      border-color: #52d88a;
+      box-shadow: 0 0 18px rgba(42,174,100,.20);
+    }
+    .volt-lora-remove:hover,
+    .volt-lora-chip button:hover,
+    .volt-lora-del:hover {
+      border-color: #d95f6d;
+      box-shadow: 0 0 18px rgba(183,67,82,.18);
     }
     .volt-lora-empty {
       padding: 16px;
-      color: #999;
+      color: var(--volt-muted);
     }
   `;
   if (!style.isConnected) document.head.appendChild(style);
