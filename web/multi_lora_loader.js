@@ -147,6 +147,12 @@ function displayName(name) {
   return slash >= 0 ? value.slice(slash + 1) : value;
 }
 
+function fileName(name) {
+  const value = String(name || "LoRA");
+  const slash = Math.max(value.lastIndexOf("/"), value.lastIndexOf("\\"));
+  return slash >= 0 ? value.slice(slash + 1) : value;
+}
+
 function normalizeDirectory(directory) {
   return String(directory || "").replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
 }
@@ -859,7 +865,8 @@ function openLoraManager(node, initialRows, onRowsChanged) {
 
   const selectItem = (item) => {
     selected = item;
-    sideName.textContent = item.name;
+    sideName.textContent = fileName(item.name);
+    sideName.title = item.name;
     if (item.preview) {
       const previewUrl = escapeHtml(item.preview);
       preview.innerHTML = `
@@ -936,7 +943,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
       <div class="volt-lora-item${selected?.name === item.name ? " active" : ""}" data-name="${escapeHtml(item.name)}">
         <div class="volt-lora-thumb">${item.preview ? `<img src="${item.preview}" alt="">` : "No preview"}</div>
         <div>
-          <div class="volt-lora-item-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+          <div class="volt-lora-item-name" title="${escapeHtml(item.name)}">${escapeHtml(fileName(item.name))}</div>
           <div class="volt-lora-item-dir">${escapeHtml(item.directory || "")}</div>
         </div>
         <button class="volt-lora-load" type="button">Load</button>
