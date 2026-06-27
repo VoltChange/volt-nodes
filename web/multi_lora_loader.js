@@ -406,7 +406,7 @@ function ensureStyles() {
       background: rgba(0,0,0,.62);
     }
     .volt-lora-modal {
-      width: min(1400px, calc(100vw - 48px));
+      width: min(1320px, calc(100vw - 48px));
       height: min(720px, calc(100vh - 48px));
       display: grid;
       grid-template-rows: auto auto 1fr;
@@ -446,7 +446,7 @@ function ensureStyles() {
     }
     .volt-lora-modal-body {
       display: grid;
-      grid-template-columns: 230px minmax(360px, 1fr) minmax(360px, 520px);
+      grid-template-columns: 230px minmax(360px, 1fr) 460px;
       gap: 12px;
       min-height: 0;
     }
@@ -529,13 +529,32 @@ function ensureStyles() {
       height: 100%;
       object-fit: cover;
     }
-    .volt-lora-preview img {
-      display: block;
+    .volt-lora-preview-bg {
+      position: absolute;
+      inset: -30px;
+      z-index: 0;
+      width: calc(100% + 60px);
+      height: calc(100% + 60px);
+      object-fit: cover;
+      filter: blur(24px) saturate(1.15) brightness(.68);
+      transform: scale(1.04);
+      opacity: .95;
+    }
+    .volt-lora-preview-img {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
       width: 100%;
-      height: auto;
-      max-height: none;
+      height: 100%;
       object-fit: contain;
-      border-radius: 6px;
+    }
+    .volt-lora-preview-empty {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
     }
     .volt-lora-item-name {
       min-width: 0;
@@ -566,11 +585,13 @@ function ensureStyles() {
       overscroll-behavior: contain;
     }
     .volt-lora-preview {
-      width: 100%;
-      min-height: 180px;
-      height: auto;
-      max-height: none;
-      overflow: visible;
+      position: relative;
+      width: 420px;
+      max-width: 100%;
+      height: 560px;
+      justify-self: center;
+      align-self: center;
+      isolation: isolate;
     }
     .volt-lora-side-name {
       min-height: 36px;
@@ -780,7 +801,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
         <div class="volt-lora-folder-list"><div class="volt-lora-empty">Loading folders...</div></div>
         <div class="volt-lora-list"><div class="volt-lora-empty">Loading LoRAs...</div></div>
         <div class="volt-lora-side">
-          <div class="volt-lora-preview">No preview</div>
+          <div class="volt-lora-preview"><div class="volt-lora-preview-empty">No preview</div></div>
           <div class="volt-lora-side-name">Select a LoRA</div>
           <div>
             <input class="volt-lora-side-strength" type="number" value="1.00" step="0.01" min="-100" max="100" title="Strength">
@@ -839,7 +860,15 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   const selectItem = (item) => {
     selected = item;
     sideName.textContent = item.name;
-    preview.innerHTML = item.preview ? `<img src="${item.preview}" alt="">` : "No preview";
+    if (item.preview) {
+      const previewUrl = escapeHtml(item.preview);
+      preview.innerHTML = `
+        <img class="volt-lora-preview-bg" src="${previewUrl}" alt="" aria-hidden="true">
+        <img class="volt-lora-preview-img" src="${previewUrl}" alt="">
+      `;
+    } else {
+      preview.innerHTML = `<div class="volt-lora-preview-empty">No preview</div>`;
+    }
     const existing = rows.find((row) => row.name === item.name);
     strength.value = Number(existing?.strength_model ?? 1).toFixed(2);
     note.value = existing?.note || "";
@@ -897,7 +926,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
       list.innerHTML = `<div class="volt-lora-empty">No matching LoRA in ${escapeHtml(folderLabel(selectedFolder))}</div>`;
       selected = null;
       sideName.textContent = "Select a LoRA";
-      preview.innerHTML = "No preview";
+      preview.innerHTML = `<div class="volt-lora-preview-empty">No preview</div>`;
       strength.value = "1.00";
       note.value = "";
       return;
