@@ -524,11 +524,15 @@ function ensureStyles() {
       height: 64px;
       font-size: 11px;
     }
-    .volt-lora-thumb img,
-    .volt-lora-preview img {
+    .volt-lora-thumb img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+    .volt-lora-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
     .volt-lora-item-name {
       min-width: 0;
