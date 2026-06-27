@@ -10,7 +10,7 @@ Features:
 
 - `MODEL` input and `MODEL` output
 - Multiple LoRA entries with enable/disable, strength, and note fields
-- Frontend LoRA manager with preview support
+- Frontend LoRA manager with preview support and folder browsing
 - Workflow-safe JSON state saving through `loras_config`
 
 ## Installation

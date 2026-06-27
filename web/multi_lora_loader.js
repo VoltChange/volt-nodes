@@ -8,6 +8,8 @@ const MAX_VISIBLE_ROWS = 5;
 const MIN_NODE_WIDTH = 760;
 const ROW_HEIGHT = 66;
 const BASE_HEIGHT = 154;
+const ALL_FOLDERS = "__all__";
+const ROOT_FOLDER = "__root__";
 
 let loraCatalogPromise = null;
 
@@ -143,6 +145,57 @@ function displayName(name) {
   const value = String(name || "LoRA").replace(/\.safetensors$/i, "");
   const slash = Math.max(value.lastIndexOf("/"), value.lastIndexOf("\\"));
   return slash >= 0 ? value.slice(slash + 1) : value;
+}
+
+function normalizeDirectory(directory) {
+  return String(directory || "").replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
+}
+
+function folderLabel(folder) {
+  if (folder === ALL_FOLDERS) return "All LoRAs";
+  if (folder === ROOT_FOLDER || folder === "") return "Root";
+  const parts = folder.split("/").filter(Boolean);
+  return parts[parts.length - 1] || folder;
+}
+
+function folderDepth(folder) {
+  if (folder === ALL_FOLDERS || folder === ROOT_FOLDER || folder === "") return 0;
+  return folder.split("/").filter(Boolean).length - 1;
+}
+
+function itemInFolder(item, folder) {
+  if (folder === ALL_FOLDERS) return true;
+  const directory = normalizeDirectory(item.directory);
+  if (folder === ROOT_FOLDER) return directory === "";
+  return directory === folder || directory.startsWith(`${folder}/`);
+}
+
+function folderEntries(catalog) {
+  const folders = new Set();
+  let rootCount = 0;
+  for (const item of catalog) {
+    const directory = normalizeDirectory(item.directory);
+    if (!directory) {
+      rootCount += 1;
+      continue;
+    }
+    const parts = directory.split("/").filter(Boolean);
+    for (let index = 1; index <= parts.length; index += 1) {
+      folders.add(parts.slice(0, index).join("/"));
+    }
+  }
+
+  const entries = [
+    { folder: ALL_FOLDERS, count: catalog.length },
+    ...(rootCount ? [{ folder: ROOT_FOLDER, count: rootCount }] : []),
+    ...Array.from(folders)
+      .sort((a, b) => a.localeCompare(b))
+      .map((folder) => ({
+        folder,
+        count: catalog.filter((item) => itemInFolder(item, folder)).length,
+      })),
+  ];
+  return entries;
 }
 
 function resizeNode(node, rowCount = 0) {
@@ -353,7 +406,7 @@ function ensureStyles() {
       background: rgba(0,0,0,.62);
     }
     .volt-lora-modal {
-      width: min(980px, calc(100vw - 48px));
+      width: min(1180px, calc(100vw - 48px));
       height: min(720px, calc(100vh - 48px));
       display: grid;
       grid-template-rows: auto auto 1fr;
@@ -393,9 +446,49 @@ function ensureStyles() {
     }
     .volt-lora-modal-body {
       display: grid;
-      grid-template-columns: minmax(300px, 1fr) 340px;
+      grid-template-columns: 230px minmax(320px, 1fr) 340px;
       gap: 12px;
       min-height: 0;
+    }
+    .volt-lora-folder-list {
+      overflow: auto;
+      border: 1px solid #303030;
+      border-radius: 8px;
+      background: #202020;
+    }
+    .volt-lora-folder-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      min-height: 34px;
+      padding: 7px 9px;
+      box-sizing: border-box;
+      border: 0;
+      border-bottom: 1px solid #303030;
+      color: #d8d8d8;
+      background: transparent;
+      cursor: pointer;
+      font: 13px Arial, sans-serif;
+      text-align: left;
+    }
+    .volt-lora-folder-item:hover,
+    .volt-lora-folder-item.active {
+      background: #2b2b2b;
+    }
+    .volt-lora-folder-name {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding-left: calc(var(--folder-depth, 0) * 14px);
+    }
+    .volt-lora-folder-count {
+      color: #8f8f8f;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
     }
     .volt-lora-list {
       overflow: auto;
@@ -668,6 +761,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
         <span class="volt-lora-count"></span>
       </div>
       <div class="volt-lora-modal-body">
+        <div class="volt-lora-folder-list"><div class="volt-lora-empty">Loading folders...</div></div>
         <div class="volt-lora-list"><div class="volt-lora-empty">Loading LoRAs...</div></div>
         <div class="volt-lora-side">
           <div class="volt-lora-preview">No preview</div>
@@ -691,6 +785,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
 
   const modal = backdrop.querySelector(".volt-lora-modal");
   const search = backdrop.querySelector(".volt-lora-search");
+  const folderList = backdrop.querySelector(".volt-lora-folder-list");
   const list = backdrop.querySelector(".volt-lora-list");
   const count = backdrop.querySelector(".volt-lora-count");
   const preview = backdrop.querySelector(".volt-lora-preview");
@@ -701,6 +796,8 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   const loadButton = backdrop.querySelector(".volt-lora-load");
   const removeButton = backdrop.querySelector(".volt-lora-remove");
   let catalog = [];
+  let folders = [];
+  let selectedFolder = ALL_FOLDERS;
   let selected = null;
 
   const commit = () => {
@@ -735,6 +832,24 @@ function openLoraManager(node, initialRows, onRowsChanged) {
     });
   };
 
+  const renderFolders = () => {
+    folders = folderEntries(catalog);
+    folderList.innerHTML = folders.map(({ folder, count: folderCount }) => `
+      <button class="volt-lora-folder-item${folder === selectedFolder ? " active" : ""}" type="button" data-folder="${escapeHtml(folder)}" title="${escapeHtml(folder === ALL_FOLDERS ? "All LoRAs" : folderLabel(folder))}">
+        <span class="volt-lora-folder-name" style="--folder-depth:${folderDepth(folder)}">${escapeHtml(folderLabel(folder))}</span>
+        <span class="volt-lora-folder-count">${folderCount}</span>
+      </button>
+    `).join("");
+
+    folderList.querySelectorAll(".volt-lora-folder-item").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedFolder = button.dataset.folder || ALL_FOLDERS;
+        renderFolders();
+        renderList();
+      });
+    });
+  };
+
   const loadSelected = () => {
     if (!selected) return;
     const row = {
@@ -757,10 +872,18 @@ function openLoraManager(node, initialRows, onRowsChanged) {
 
   const renderList = () => {
     const query = search.value.trim().toLowerCase();
-    const filtered = catalog.filter((item) => item.name.toLowerCase().includes(query));
-    count.textContent = `${filtered.length} LoRAs`;
+    const filtered = catalog.filter((item) => {
+      const haystack = `${item.name} ${normalizeDirectory(item.directory)}`.toLowerCase();
+      return itemInFolder(item, selectedFolder) && (!query || haystack.includes(query));
+    });
+    count.textContent = `${filtered.length} / ${catalog.length} LoRAs`;
     if (!filtered.length) {
-      list.innerHTML = `<div class="volt-lora-empty">No matching LoRA</div>`;
+      list.innerHTML = `<div class="volt-lora-empty">No matching LoRA in ${escapeHtml(folderLabel(selectedFolder))}</div>`;
+      selected = null;
+      sideName.textContent = "Select a LoRA";
+      preview.innerHTML = "No preview";
+      strength.value = "1.00";
+      note.value = "";
       return;
     }
 
@@ -784,6 +907,12 @@ function openLoraManager(node, initialRows, onRowsChanged) {
         loadSelected();
       });
     });
+
+    if (!selected || !filtered.some((item) => item.name === selected.name)) {
+      selectItem(filtered[0]);
+    } else {
+      selectItem(selected);
+    }
   };
 
   loadButton.addEventListener("click", loadSelected);
@@ -796,8 +925,10 @@ function openLoraManager(node, initialRows, onRowsChanged) {
 
   loadLoraCatalog().then((items) => {
     catalog = items;
+    renderFolders();
     renderList();
-    if (catalog[0]) selectItem(catalog[0]);
+    const firstVisible = catalog.find((item) => itemInFolder(item, selectedFolder));
+    if (firstVisible) selectItem(firstVisible);
   });
   search.focus();
 }
