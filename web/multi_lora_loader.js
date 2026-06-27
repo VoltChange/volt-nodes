@@ -695,7 +695,8 @@ function ensureStyles() {
     .volt-lora-chip button,
     .volt-lora-load,
     .volt-lora-remove,
-    .volt-lora-close {
+    .volt-lora-close,
+    .volt-lora-civitai {
       height: 34px;
       border-radius: 7px;
       cursor: pointer;
@@ -729,10 +730,26 @@ function ensureStyles() {
       border-color: var(--volt-red-border);
       box-shadow: 0 0 14px rgba(183,67,82,.10);
     }
+    .volt-lora-civitai {
+      color: #dff7ff;
+      background: linear-gradient(180deg, rgba(28,57,75,.96), rgba(18,33,48,.96));
+      border-color: rgba(66,215,255,.46);
+      box-shadow: 0 0 14px rgba(66,215,255,.10);
+    }
+    .volt-lora-civitai:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+      filter: none;
+      box-shadow: none;
+    }
     .volt-lora-close:hover {
       border-color: rgba(66,215,255,.46);
       box-shadow: 0 0 16px rgba(66,215,255,.10);
       background: rgba(27,36,48,.98);
+    }
+    .volt-lora-civitai:not(:disabled):hover {
+      border-color: #67e2ff;
+      box-shadow: 0 0 18px rgba(66,215,255,.18);
     }
     .volt-lora-load:hover {
       border-color: #52d88a;
@@ -897,7 +914,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
           <div class="volt-lora-side-actions">
             <button class="volt-lora-load" type="button">Load</button>
             <button class="volt-lora-remove" type="button">Remove</button>
-            <button class="volt-lora-close" type="button">Close</button>
+            <button class="volt-lora-civitai" type="button" disabled>No Link</button>
           </div>
           <div class="volt-lora-selected"></div>
         </div>
@@ -919,6 +936,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   const selectedBox = backdrop.querySelector(".volt-lora-selected");
   const loadButton = backdrop.querySelector(".volt-lora-load");
   const removeButton = backdrop.querySelector(".volt-lora-remove");
+  const civitaiButton = backdrop.querySelector(".volt-lora-civitai");
   let catalog = [];
   let folders = [];
   let selectedFolder = ALL_FOLDERS;
@@ -948,6 +966,10 @@ function openLoraManager(node, initialRows, onRowsChanged) {
     selected = item;
     sideName.textContent = fileName(item.name);
     sideName.title = item.name;
+    const civitaiUrl = item.civitai_url || "";
+    civitaiButton.disabled = !civitaiUrl;
+    civitaiButton.textContent = civitaiUrl ? "Civitai" : "No Link";
+    civitaiButton.title = civitaiUrl || "No Civitai metadata link";
     if (item.preview) {
       const previewUrl = escapeHtml(item.preview);
       preview.innerHTML = `
@@ -1014,6 +1036,9 @@ function openLoraManager(node, initialRows, onRowsChanged) {
       list.innerHTML = `<div class="volt-lora-empty">No matching LoRA in ${escapeHtml(folderLabel(selectedFolder))}</div>`;
       selected = null;
       sideName.textContent = "Select a LoRA";
+      civitaiButton.disabled = true;
+      civitaiButton.textContent = "No Link";
+      civitaiButton.title = "No Civitai metadata link";
       preview.innerHTML = `<div class="volt-lora-preview-empty">No preview</div>`;
       strength.value = "1.00";
       note.value = "";
@@ -1050,6 +1075,10 @@ function openLoraManager(node, initialRows, onRowsChanged) {
 
   loadButton.addEventListener("click", loadSelected);
   removeButton.addEventListener("click", removeSelected);
+  civitaiButton.addEventListener("click", () => {
+    if (!selected?.civitai_url) return;
+    window.open(selected.civitai_url, "_blank", "noopener,noreferrer");
+  });
   search.addEventListener("input", renderList);
   renderSelected(selectedBox, rows, (index) => {
     rows.splice(index, 1);

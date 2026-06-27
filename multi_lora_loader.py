@@ -1,5 +1,6 @@
 import os
 from collections import OrderedDict
+import re
 from urllib.parse import quote
 import json
 
@@ -19,7 +20,11 @@ DEFAULT_CONFIG = "[]"
 _PREVIEW_EXTENSIONS = (".preview.png", ".preview.jpg", ".preview.jpeg", ".preview.webp", ".png", ".jpg", ".jpeg", ".webp")
 _LORA_CACHE = OrderedDict()
 _LORA_CACHE_LIMIT = 12
+_LORA_METADATA_CACHE = OrderedDict()
+_LORA_METADATA_CACHE_LIMIT = 128
 _ROUTES_REGISTERED = False
+_CIVITAI_URL_RE = re.compile(r"https?://(?:www\.)?civitai\.(?:com|red)/[^\s\"'<>)]*", re.IGNORECASE)
+_CIVITAI_AIR_RE = re.compile(r":civitai:(\d+)@(\d+)", re.IGNORECASE)
 
 
 def _coerce_float(value, default=1.0):
@@ -138,6 +143,101 @@ def _preview_for_lora(path):
     return None
 
 
+def _metadata_sidecar_for_lora(path):
+    if not path:
+        return None
+
+    base, _ = os.path.splitext(path)
+    candidates = (base + ".metadata.json", path + ".metadata.json")
+    for candidate in candidates:
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def _read_json_sidecar(path):
+    metadata_path = _metadata_sidecar_for_lora(path)
+    if metadata_path is None:
+        return None
+
+    try:
+        stat = os.stat(metadata_path)
+    except OSError:
+        return None
+
+    signature = (metadata_path, stat.st_mtime_ns, stat.st_size)
+    cached = _LORA_METADATA_CACHE.get(signature)
+    if cached is not None:
+        _LORA_METADATA_CACHE.move_to_end(signature)
+        return cached
+
+    try:
+        with open(metadata_path, "r", encoding="utf-8") as handle:
+            metadata = json.load(handle)
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+        return None
+
+    _LORA_METADATA_CACHE[signature] = metadata
+    while len(_LORA_METADATA_CACHE) > _LORA_METADATA_CACHE_LIMIT:
+        _LORA_METADATA_CACHE.popitem(last=False)
+    return metadata
+
+
+def _string_id(value):
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return ""
+    value = str(value).strip()
+    return value if value.isdigit() else ""
+
+
+def _walk_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for child in value.values():
+            yield from _walk_strings(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _walk_strings(child)
+
+
+def _civitai_url_from_metadata(metadata):
+    if not isinstance(metadata, dict):
+        return None
+
+    civitai = metadata.get("civitai")
+    if isinstance(civitai, dict):
+        model_id = _string_id(civitai.get("modelId"))
+        version_id = _string_id(civitai.get("id"))
+        if not model_id:
+            model = civitai.get("model")
+            if isinstance(model, dict):
+                model_id = _string_id(model.get("id"))
+        if model_id:
+            url = f"https://civitai.red/models/{model_id}"
+            if version_id:
+                url += f"?modelVersionId={version_id}"
+            return url
+
+    for text in _walk_strings(metadata):
+        air_match = _CIVITAI_AIR_RE.search(text)
+        if air_match:
+            return f"https://civitai.red/models/{air_match.group(1)}?modelVersionId={air_match.group(2)}"
+
+    for text in _walk_strings(metadata):
+        for match in _CIVITAI_URL_RE.finditer(text):
+            url = match.group(0).rstrip(".,;")
+            if "/api/download/" not in url.lower():
+                return url
+    return None
+
+
+def _civitai_url_for_lora(path):
+    return _civitai_url_from_metadata(_read_json_sidecar(path))
+
+
 async def get_loras(_request):
     items = []
     for name in folder_paths.get_filename_list("loras"):
@@ -148,6 +248,7 @@ async def get_loras(_request):
                 "name": name,
                 "directory": os.path.dirname(name).replace("\\", "/"),
                 "preview": f"/volt-nodes/lora-preview?name={quote(name)}" if preview_path else None,
+                "civitai_url": _civitai_url_for_lora(path),
             }
         )
     return web.json_response({"loras": items})
