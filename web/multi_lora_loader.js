@@ -13,6 +13,16 @@ const ROOT_FOLDER = "__root__";
 
 let loraCatalogPromise = null;
 
+const ICONS = {
+  search: `<svg class="volt-lora-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16.5 16.5 4 4"></path></svg>`,
+  plus: `<svg class="volt-lora-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>`,
+  load: `<svg class="volt-lora-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>`,
+  trash: `<svg class="volt-lora-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 14h10l1-14"></path><path d="M9 7V4h6v3"></path></svg>`,
+  external: `<svg class="volt-lora-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5"></path><path d="m10 14 9-9"></path><path d="M19 14v5H5V5h5"></path></svg>`,
+  close: `<svg class="volt-lora-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6 6 18"></path></svg>`,
+  chevron: `<svg class="volt-lora-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>`,
+};
+
 function widget(node, name) {
   return node.widgets?.find((item) => item.name === name);
 }
@@ -169,6 +179,15 @@ function folderDepth(folder) {
   return folder.split("/").filter(Boolean).length - 1;
 }
 
+function folderAncestors(folder) {
+  const parts = normalizeDirectory(folder).split("/").filter(Boolean);
+  const ancestors = [];
+  for (let index = 1; index < parts.length; index += 1) {
+    ancestors.push(parts.slice(0, index).join("/"));
+  }
+  return ancestors;
+}
+
 function itemInFolder(item, folder) {
   if (folder === ALL_FOLDERS) return true;
   const directory = normalizeDirectory(item.directory);
@@ -199,9 +218,17 @@ function folderEntries(catalog) {
       .map((folder) => ({
         folder,
         count: catalog.filter((item) => itemInFolder(item, folder)).length,
+        hasChildren: Array.from(folders).some((candidate) => candidate !== folder && candidate.startsWith(`${folder}/`)),
       })),
   ];
   return entries;
+}
+
+function visibleFolderEntries(entries, collapsedFolders) {
+  return entries.filter(({ folder }) => {
+    if (folder === ALL_FOLDERS || folder === ROOT_FOLDER) return true;
+    return !folderAncestors(folder).some((ancestor) => collapsedFolders.has(ancestor));
+  });
 }
 
 function resizeNode(node, rowCount = 0) {
@@ -255,26 +282,55 @@ function ensureStyles() {
     .volt-lora-node-root {
       overflow: visible !important;
     }
+    .volt-lora-icon {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: .86;
+    }
     .volt-lora-node {
       box-sizing: border-box;
       width: 100%;
       min-width: 0;
-      padding: 10px 14px 14px;
+      position: relative;
+      padding: 14px;
       color: var(--volt-text);
       font: 13px Arial, sans-serif;
       user-select: none;
-      overflow: visible;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(20,29,39,.96), rgba(9,13,19,.96)),
+        radial-gradient(circle at 18% 0%, rgba(66,215,255,.13), transparent 34%),
+        radial-gradient(circle at 82% 100%, rgba(139,111,255,.11), transparent 38%);
+      border: 1px solid rgba(66,215,255,.18);
+      border-radius: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 0 0 1px rgba(139,111,255,.045), 0 10px 26px rgba(0,0,0,.20);
+    }
+    .volt-lora-node::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(66,215,255,.55), rgba(139,111,255,.34), transparent);
+      opacity: .65;
+      pointer-events: none;
     }
     .volt-lora-node-head {
       display: grid;
       grid-template-columns: 62px minmax(260px, 1fr) 120px minmax(170px, .62fr) 48px;
       gap: 10px;
       align-items: center;
-      margin: 0 0 8px;
-      padding: 0 2px;
-      color: var(--volt-muted);
+      margin: 0 0 9px;
+      padding: 0 4px;
+      color: #8fa1ba;
       font-size: 12px;
       line-height: 18px;
+      letter-spacing: .01em;
     }
     .volt-lora-node-rows {
       display: grid;
@@ -297,11 +353,11 @@ function ensureStyles() {
       justify-items: stretch;
       height: 56px;
       padding: 6px;
-      background: linear-gradient(180deg, rgba(27,36,48,.96), rgba(15,22,30,.96));
-      border: 1px solid rgba(42,174,100,.72);
+      background: linear-gradient(180deg, rgba(19,29,39,.96), rgba(10,16,23,.96));
+      border: 1px solid rgba(66,215,255,.40);
       border-radius: 8px;
-      box-shadow: inset 0 0 0 1px rgba(66,215,255,.06), 0 0 14px rgba(42,174,100,.10);
-      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+      box-shadow: inset 0 0 0 1px rgba(139,111,255,.045), 0 0 16px rgba(66,215,255,.075);
+      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease, transform .14s ease;
     }
     .volt-lora-node-row.disabled {
       border-color: var(--volt-border);
@@ -309,8 +365,10 @@ function ensureStyles() {
       opacity: .72;
     }
     .volt-lora-node-row:hover {
-      border-color: rgba(66,215,255,.58);
-      box-shadow: inset 0 0 0 1px rgba(139,111,255,.08), 0 0 16px rgba(66,215,255,.10);
+      background: linear-gradient(180deg, rgba(24,36,48,.98), rgba(12,19,27,.98));
+      border-color: rgba(66,215,255,.66);
+      box-shadow: inset 0 0 0 1px rgba(139,111,255,.10), 0 0 18px rgba(66,215,255,.14);
+      transform: translateY(-1px);
     }
     .volt-lora-switch {
       position: relative;
@@ -356,8 +414,8 @@ function ensureStyles() {
       min-width: 0;
       height: 38px;
       color: var(--volt-text);
-      background: rgba(18,25,34,.92);
-      border: 1px solid var(--volt-border);
+      background: rgba(12,18,25,.95);
+      border: 1px solid rgba(45,62,80,.95);
       border-radius: 6px;
       outline: none;
       align-self: center;
@@ -374,12 +432,14 @@ function ensureStyles() {
     .volt-lora-name {
       display: flex;
       align-items: center;
-      padding: 0 12px;
+      padding: 0 13px;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
       font-size: 14px;
       line-height: 38px;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.015);
     }
     .volt-lora-strength {
       padding: 0 8px;
@@ -390,14 +450,15 @@ function ensureStyles() {
       font-variant-numeric: tabular-nums;
     }
     .volt-lora-note {
-      padding: 0 8px;
-      background: rgba(25,24,43,.92);
-      border-color: rgba(139,111,255,.34);
+      padding: 0 10px;
+      background: rgba(22,19,42,.92);
+      border-color: rgba(139,111,255,.38);
       line-height: 38px;
     }
     .volt-lora-del {
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       align-self: center;
       justify-self: center;
       width: 42px;
@@ -405,34 +466,51 @@ function ensureStyles() {
       padding: 0;
       margin: 0;
       border: 1px solid var(--volt-red-border);
-      border-radius: 8px;
+      border-radius: 9px;
       color: #ffe2e5;
       background: linear-gradient(180deg, #9a202a, var(--volt-red));
       cursor: pointer;
-      font-size: 24px;
-      line-height: 1;
       font-family: Arial, sans-serif;
       box-shadow: 0 0 12px rgba(183,67,82,.12);
       transition: filter .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+    .volt-lora-del .volt-lora-icon {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2.3;
     }
     .volt-lora-add {
       width: 100%;
       height: 48px;
       margin-top: 14px;
-      border: 1px solid rgba(139,111,255,.36);
+      border: 1px solid rgba(139,111,255,.42);
       border-radius: 8px;
       color: #b7a8ff;
-      background: linear-gradient(180deg, rgba(27,36,48,.98), rgba(13,18,25,.98));
+      background: linear-gradient(180deg, rgba(18,28,39,.98), rgba(9,14,21,.98));
       cursor: pointer;
       font-size: 18px;
       font-weight: 700;
-      box-shadow: inset 0 0 0 1px rgba(66,215,255,.05);
-      transition: color .14s ease, border-color .14s ease, box-shadow .14s ease, filter .14s ease;
+      box-shadow: inset 0 0 0 1px rgba(66,215,255,.06), 0 0 16px rgba(139,111,255,.08);
+      transition: color .14s ease, border-color .14s ease, box-shadow .14s ease, filter .14s ease, background .14s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .volt-lora-add .volt-lora-icon {
+      width: 17px;
+      height: 17px;
     }
     .volt-lora-add:hover,
     .volt-lora-del:hover,
     .volt-lora-switch:hover {
       filter: brightness(1.1);
+    }
+    .volt-lora-add:hover {
+      color: #cfc5ff;
+      border-color: rgba(66,215,255,.55);
+      background: linear-gradient(180deg, rgba(22,34,47,.98), rgba(11,17,25,.98));
+      box-shadow: inset 0 0 0 1px rgba(66,215,255,.10), 0 0 20px rgba(66,215,255,.10), 0 0 18px rgba(139,111,255,.10);
     }
     .volt-lora-empty-node {
       display: grid;
@@ -479,6 +557,22 @@ function ensureStyles() {
       color: var(--volt-text);
       text-shadow: 0 0 18px rgba(66,215,255,.10);
     }
+    .volt-lora-search-wrap {
+      position: relative;
+      display: block;
+      min-width: 0;
+    }
+    .volt-lora-search-wrap .volt-lora-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      z-index: 1;
+      width: 15px;
+      height: 15px;
+      transform: translateY(-50%);
+      color: var(--volt-muted);
+      pointer-events: none;
+    }
     .volt-lora-search,
     .volt-lora-modal input[type="number"],
     .volt-lora-modal input[type="text"] {
@@ -500,6 +594,9 @@ function ensureStyles() {
       border-color: rgba(66,215,255,.68);
       box-shadow: 0 0 0 1px rgba(66,215,255,.12), 0 0 18px rgba(66,215,255,.08);
       background: rgba(20,29,39,.98);
+    }
+    .volt-lora-modal .volt-lora-search-wrap input.volt-lora-search {
+      padding-left: 38px !important;
     }
     .volt-lora-modal-body {
       display: grid;
@@ -540,11 +637,49 @@ function ensureStyles() {
       box-shadow: inset 2px 0 0 rgba(66,215,255,.62);
     }
     .volt-lora-folder-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       min-width: 0;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
       padding-left: calc(var(--folder-depth, 0) * 14px);
+    }
+    .volt-lora-folder-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 18px;
+      flex: 0 0 16px;
+      color: var(--volt-muted);
+      border-radius: 4px;
+      transition: color .14s ease, background .14s ease, transform .14s ease;
+    }
+    .volt-lora-folder-toggle.collapsed {
+      transform: rotate(0deg);
+    }
+    .volt-lora-folder-toggle.expanded {
+      transform: rotate(90deg);
+    }
+    .volt-lora-folder-toggle.placeholder {
+      opacity: .28;
+    }
+    .volt-lora-folder-toggle:not(.placeholder):hover {
+      color: var(--volt-cyan);
+      background: rgba(66,215,255,.10);
+    }
+    .volt-lora-folder-toggle .volt-lora-icon {
+      width: 13px;
+      height: 13px;
+      stroke-width: 2.3;
+    }
+    .volt-lora-folder-label {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
     .volt-lora-folder-count {
       color: var(--volt-muted);
@@ -697,6 +832,10 @@ function ensureStyles() {
     .volt-lora-remove,
     .volt-lora-close,
     .volt-lora-civitai {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
       height: 34px;
       border-radius: 7px;
       cursor: pointer;
@@ -709,9 +848,14 @@ function ensureStyles() {
     .volt-lora-chip button {
       width: 28px;
       height: 24px;
+      gap: 0;
       color: #ffdfe3;
       background: var(--volt-red);
       border-color: var(--volt-red-border);
+    }
+    .volt-lora-chip button .volt-lora-icon {
+      width: 14px;
+      height: 14px;
     }
     .volt-lora-side-actions {
       display: grid;
@@ -788,11 +932,11 @@ function renderOuterNode(node, root) {
             <div class="volt-lora-name" title="${escapeHtml(row.name)}">${escapeHtml(displayName(row.name))}</div>
             <input class="volt-lora-strength" type="number" step="0.01" min="-100" max="100" value="${Number(row.strength_model ?? 1).toFixed(2)}" title="Strength">
             <input class="volt-lora-note" type="text" value="${escapeHtml(row.note || "")}" placeholder="Note..." title="Note">
-            <button class="volt-lora-del" type="button" title="Delete">x</button>
+            <button class="volt-lora-del" type="button" title="Delete">${ICONS.close}</button>
           </div>
         `).join("") : `<div class="volt-lora-empty-node">No LoRA loaded</div>`}
       </div>
-      <button class="volt-lora-add" type="button">+ Add LoRA</button>
+      <button class="volt-lora-add" type="button">${ICONS.plus}<span>Add LoRA</span></button>
     </div>
   `;
 
@@ -878,7 +1022,7 @@ function renderSelected(container, rows, onRemove) {
   container.innerHTML = rows.map((row, index) => `
     <div class="volt-lora-chip" data-index="${index}">
       <span title="${escapeHtml(row.name)}">${row.enabled ? "ON" : "OFF"} / ${escapeHtml(row.name)} / ${Number(row.strength_model ?? 1).toFixed(2)}</span>
-      <button type="button" title="Remove">X</button>
+      <button type="button" title="Remove">${ICONS.close}</button>
     </div>
   `).join("");
   container.querySelectorAll(".volt-lora-chip").forEach((chip) => {
@@ -895,10 +1039,13 @@ function openLoraManager(node, initialRows, onRowsChanged) {
     <div class="volt-lora-modal" role="dialog" aria-modal="true">
       <div class="volt-lora-modal-head">
         <div class="volt-lora-modal-title">LoRA Manager</div>
-        <button class="volt-lora-close" type="button">Close</button>
+        <button class="volt-lora-close" type="button">${ICONS.close}<span>Close</span></button>
       </div>
       <div class="volt-lora-modal-tools">
-        <input class="volt-lora-search" type="text" placeholder="Search LoRA...">
+        <label class="volt-lora-search-wrap">
+          ${ICONS.search}
+          <input class="volt-lora-search" type="text" placeholder="Search LoRA...">
+        </label>
         <span class="volt-lora-count"></span>
       </div>
       <div class="volt-lora-modal-body">
@@ -912,9 +1059,9 @@ function openLoraManager(node, initialRows, onRowsChanged) {
             <input class="volt-lora-side-note" type="text" placeholder="Note..." title="Note" style="margin-top:8px">
           </div>
           <div class="volt-lora-side-actions">
-            <button class="volt-lora-load" type="button">Load</button>
-            <button class="volt-lora-remove" type="button">Remove</button>
-            <button class="volt-lora-civitai" type="button" disabled>No Link</button>
+            <button class="volt-lora-load" type="button">${ICONS.load}<span>Load</span></button>
+            <button class="volt-lora-remove" type="button">${ICONS.trash}<span>Remove</span></button>
+            <button class="volt-lora-civitai" type="button" disabled>${ICONS.external}<span>No Link</span></button>
           </div>
           <div class="volt-lora-selected"></div>
         </div>
@@ -940,6 +1087,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   let catalog = [];
   let folders = [];
   let selectedFolder = ALL_FOLDERS;
+  const collapsedFolders = new Set();
   let selected = null;
 
   const commit = () => {
@@ -968,7 +1116,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
     sideName.title = item.name;
     const civitaiUrl = item.civitai_url || "";
     civitaiButton.disabled = !civitaiUrl;
-    civitaiButton.textContent = civitaiUrl ? "Civitai" : "No Link";
+    civitaiButton.querySelector("span").textContent = civitaiUrl ? "Civitai" : "No Link";
     civitaiButton.title = civitaiUrl || "No Civitai metadata link";
     if (item.preview) {
       const previewUrl = escapeHtml(item.preview);
@@ -989,9 +1137,13 @@ function openLoraManager(node, initialRows, onRowsChanged) {
 
   const renderFolders = () => {
     folders = folderEntries(catalog);
-    folderList.innerHTML = folders.map(({ folder, count: folderCount }) => `
+    const visibleFolders = visibleFolderEntries(folders, collapsedFolders);
+    folderList.innerHTML = visibleFolders.map(({ folder, count: folderCount, hasChildren }) => `
       <button class="volt-lora-folder-item${folder === selectedFolder ? " active" : ""}" type="button" data-folder="${escapeHtml(folder)}" title="${escapeHtml(folder === ALL_FOLDERS ? "All LoRAs" : folderLabel(folder))}">
-        <span class="volt-lora-folder-name" style="--folder-depth:${folderDepth(folder)}">${escapeHtml(folderLabel(folder))}</span>
+        <span class="volt-lora-folder-name" style="--folder-depth:${folderDepth(folder)}">
+          <span class="volt-lora-folder-toggle${hasChildren ? collapsedFolders.has(folder) ? " collapsed" : " expanded" : " placeholder"}" data-folder="${escapeHtml(folder)}">${hasChildren ? ICONS.chevron : ""}</span>
+          <span class="volt-lora-folder-label">${escapeHtml(folderLabel(folder))}</span>
+        </span>
         <span class="volt-lora-folder-count">${folderCount}</span>
       </button>
     `).join("");
@@ -1001,6 +1153,20 @@ function openLoraManager(node, initialRows, onRowsChanged) {
         selectedFolder = button.dataset.folder || ALL_FOLDERS;
         renderFolders();
         renderList();
+      });
+    });
+    folderList.querySelectorAll(".volt-lora-folder-toggle:not(.placeholder)").forEach((toggle) => {
+      toggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const folder = toggle.dataset.folder || "";
+        if (!folder) return;
+        const willCollapse = !collapsedFolders.has(folder);
+        if (willCollapse) collapsedFolders.add(folder);
+        else collapsedFolders.delete(folder);
+        const selectedWillHide = willCollapse && selectedFolder !== folder && folderAncestors(selectedFolder).includes(folder);
+        if (selectedWillHide) selectedFolder = folder;
+        renderFolders();
+        if (selectedWillHide) renderList();
       });
     });
   };
@@ -1037,7 +1203,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
       selected = null;
       sideName.textContent = "Select a LoRA";
       civitaiButton.disabled = true;
-      civitaiButton.textContent = "No Link";
+      civitaiButton.querySelector("span").textContent = "No Link";
       civitaiButton.title = "No Civitai metadata link";
       preview.innerHTML = `<div class="volt-lora-preview-empty">No preview</div>`;
       strength.value = "1.00";
@@ -1052,7 +1218,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
           <div class="volt-lora-item-name" title="${escapeHtml(item.name)}">${escapeHtml(fileName(item.name))}</div>
           <div class="volt-lora-item-dir">${escapeHtml(item.directory || "")}</div>
         </div>
-        <button class="volt-lora-load" type="button">Load</button>
+        <button class="volt-lora-load" type="button">${ICONS.load}<span>Load</span></button>
       </div>
     `).join("");
 
