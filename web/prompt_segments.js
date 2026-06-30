@@ -439,6 +439,11 @@ function ensureStyles() {
 function renderPromptNode(node, root) {
   const state = normalizeState(node._voltPromptState || readState(node));
   const scrolling = state.segments.length > MAX_VISIBLE_SEGMENTS;
+  const previousList = root.querySelector(".volt-prompt-list");
+  const previousScrollTop = previousList?.scrollTop || 0;
+  const wasNearBottom = previousList
+    ? previousList.scrollTop + previousList.clientHeight >= previousList.scrollHeight - 4
+    : false;
   root.innerHTML = `
     <div class="volt-prompt-node">
       <div class="volt-prompt-toolbar">
@@ -464,6 +469,11 @@ function renderPromptNode(node, root) {
       <button class="volt-prompt-add" type="button">${ICONS.plus}<span>Add Segment</span></button>
     </div>
   `;
+
+  const list = root.querySelector(".volt-prompt-list");
+  if (list && previousList) {
+    list.scrollTop = wasNearBottom ? list.scrollHeight : previousScrollTop;
+  }
 
   const commit = ({ render = false } = {}) => setState(node, state, { render });
 

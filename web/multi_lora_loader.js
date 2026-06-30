@@ -597,8 +597,8 @@ function ensureStyles() {
       backdrop-filter: blur(6px);
     }
     .volt-lora-modal {
-      width: min(1320px, calc(100vw - 48px));
-      height: min(720px, calc(100vh - 48px));
+      width: min(1298px, calc(100vw - 48px));
+      height: min(750px, calc(100vh - 48px));
       display: grid;
       grid-template-rows: auto auto 1fr;
       gap: 10px;
@@ -666,7 +666,7 @@ function ensureStyles() {
     }
     .volt-lora-modal-body {
       display: grid;
-      grid-template-columns: 230px minmax(360px, 1fr) 460px;
+      grid-template-columns: 230px 420px 344px 240px;
       gap: 12px;
       min-height: 0;
     }
@@ -753,6 +753,8 @@ function ensureStyles() {
       font-variant-numeric: tabular-nums;
     }
     .volt-lora-list {
+      min-width: 0;
+      width: 100%;
       overflow: auto;
       border: 1px solid var(--volt-border-soft);
       border-radius: 8px;
@@ -761,7 +763,7 @@ function ensureStyles() {
     }
     .volt-lora-item {
       display: grid;
-      grid-template-columns: 64px 1fr auto;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
       gap: 10px;
       align-items: center;
       padding: 8px;
@@ -787,10 +789,13 @@ function ensureStyles() {
       overflow: hidden;
     }
     .volt-lora-thumb {
-      width: 64px;
-      height: 64px;
+      width: 56px;
+      height: 56px;
       font-size: 11px;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+    }
+    .volt-lora-item > div:nth-child(2) {
+      min-width: 0;
     }
     .volt-lora-thumb img {
       width: 100%;
@@ -856,8 +861,8 @@ function ensureStyles() {
       position: relative;
       width: 420px;
       max-width: 100%;
-      height: 380px;
-      flex: 0 0 380px;
+      height: 285px;
+      flex: 0 0 285px;
       justify-self: center;
       align-self: center;
       isolation: isolate;
@@ -881,10 +886,10 @@ function ensureStyles() {
       color: var(--volt-text-soft);
       font-size: 12px;
       line-height: 1.38;
-      min-height: 132px;
-      max-height: 220px;
-      flex: 0 0 180px;
-      overflow: auto;
+      min-height: 0;
+      height: auto;
+      flex: 0 0 auto;
+      overflow: visible;
     }
     .volt-lora-meta-row {
       display: grid;
@@ -942,29 +947,136 @@ function ensureStyles() {
       color: var(--volt-muted);
     }
     .volt-lora-selected {
-      min-height: 92px;
+      min-height: 0;
       overflow: auto;
       padding: 8px;
+      border: 0;
+      border-top: 1px solid var(--volt-border-soft);
+      border-radius: 0;
+      background: transparent;
+      color: var(--volt-text-soft);
+    }
+    .volt-lora-loaded-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-width: 0;
+      min-height: 0;
       border: 1px solid var(--volt-border-soft);
       border-radius: 8px;
       background: rgba(12,18,25,.92);
-      color: var(--volt-text-soft);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.015);
+      overflow: hidden;
     }
-    .volt-lora-chip {
+    .volt-lora-loaded-head {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 6px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
       align-items: center;
-      margin-bottom: 6px;
-      min-width: 0;
+      padding: 10px 11px;
+      color: var(--volt-text);
+      font-weight: 700;
+      border-bottom: 1px solid rgba(66,215,255,.10);
+      background: linear-gradient(90deg, rgba(66,215,255,.08), rgba(139,111,255,.05));
     }
-    .volt-lora-chip span {
+    .volt-lora-loaded-title {
       min-width: 0;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
-    .volt-lora-chip button,
+    .volt-lora-loaded-count {
+      min-width: 22px;
+      padding: 2px 7px;
+      border: 1px solid rgba(139,111,255,.22);
+      border-radius: 999px;
+      color: var(--volt-text-soft);
+      background: rgba(17,24,32,.70);
+      text-align: center;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .volt-lora-chip {
+      display: grid;
+      grid-template-columns: 38px 32px minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: center;
+      margin-bottom: 6px;
+      padding: 7px;
+      border: 1px solid rgba(39,52,68,.78);
+      border-radius: 7px;
+      background: rgba(17,24,32,.78);
+      min-width: 0;
+    }
+    .volt-lora-chip:last-child {
+      margin-bottom: 0;
+    }
+    .volt-lora-chip-name {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--volt-text-soft);
+      font-weight: 700;
+    }
+    .volt-lora-chip-switch {
+      position: relative;
+      width: 38px;
+      height: 22px;
+      padding: 0;
+      margin: 0;
+      justify-self: start;
+      border: 1px solid #2f9b62;
+      border-radius: 999px;
+      background: #23834c;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      transition: background .12s ease, border-color .12s ease, filter .12s ease;
+    }
+    .volt-lora-chip-switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 19px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #e6f5ec;
+      box-shadow: 0 1px 4px rgba(0,0,0,.35);
+      transition: left .12s ease;
+    }
+    .volt-lora-chip-switch.off {
+      background: #3a3a3a;
+      border-color: #5a5a5a;
+    }
+    .volt-lora-chip-switch.off::after {
+      left: 3px;
+      background: #a2a2a2;
+    }
+    .volt-lora-chip-switch:hover {
+      filter: brightness(1.08);
+    }
+    .volt-lora-chip-thumb {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid rgba(39,52,68,.86);
+      border-radius: 6px;
+      background: rgba(7,16,23,.92);
+      color: var(--volt-muted);
+      font-size: 9px;
+      line-height: 1.05;
+      text-align: center;
+    }
+    .volt-lora-chip-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .volt-lora-chip-remove,
     .volt-lora-load,
     .volt-lora-remove,
     .volt-lora-close,
@@ -982,17 +1094,17 @@ function ensureStyles() {
       font-weight: 700;
       transition: filter .12s ease, border-color .12s ease, box-shadow .12s ease, background .12s ease;
     }
-    .volt-lora-chip button {
-      width: 28px;
-      height: 24px;
+    .volt-lora-chip-remove {
+      width: 24px;
+      height: 22px;
       gap: 0;
       color: #ffdfe3;
       background: var(--volt-red);
       border-color: var(--volt-red-border);
     }
-    .volt-lora-chip button .volt-lora-icon {
-      width: 14px;
-      height: 14px;
+    .volt-lora-chip-remove .volt-lora-icon {
+      width: 13px;
+      height: 13px;
     }
     .volt-lora-side-actions {
       display: grid;
@@ -1037,7 +1149,7 @@ function ensureStyles() {
       box-shadow: 0 0 18px rgba(42,174,100,.20);
     }
     .volt-lora-remove:hover,
-    .volt-lora-chip button:hover,
+    .volt-lora-chip-remove:hover,
     .volt-lora-del:hover {
       border-color: #d95f6d;
       box-shadow: 0 0 18px rgba(183,67,82,.18);
@@ -1053,6 +1165,11 @@ function ensureStyles() {
 function renderOuterNode(node, root) {
   const rows = normalizeRows(node._voltRows || readRows(node));
   const rowsScrolling = rows.length > MAX_VISIBLE_ROWS;
+  const previousRows = root.querySelector(".volt-lora-node-rows");
+  const previousScrollTop = previousRows?.scrollTop || 0;
+  const wasNearBottom = previousRows
+    ? previousRows.scrollTop + previousRows.clientHeight >= previousRows.scrollHeight - 4
+    : false;
   root.innerHTML = `
     <div class="volt-lora-node">
       <div class="volt-lora-node-head">
@@ -1076,6 +1193,11 @@ function renderOuterNode(node, root) {
       <button class="volt-lora-add" type="button">${ICONS.plus}<span>Add LoRA</span></button>
     </div>
   `;
+
+  const nextRows = root.querySelector(".volt-lora-node-rows");
+  if (nextRows && previousRows) {
+    nextRows.scrollTop = wasNearBottom ? nextRows.scrollHeight : previousScrollTop;
+  }
 
   root.querySelectorAll(".volt-lora-node-row").forEach((rowElement) => {
     const index = Number(rowElement.dataset.index);
@@ -1151,19 +1273,30 @@ async function loadLoraCatalog() {
   return loraCatalogPromise;
 }
 
-function renderSelected(container, rows, onRemove) {
+function renderSelected(container, rows, catalog, onRemove, onToggle) {
   if (!rows.length) {
     container.innerHTML = `<div class="volt-lora-empty">No LoRA selected</div>`;
     return;
   }
-  container.innerHTML = rows.map((row, index) => `
-    <div class="volt-lora-chip" data-index="${index}">
-      <span title="${escapeHtml(row.name)}">${row.enabled ? "ON" : "OFF"} / ${escapeHtml(row.name)} / ${Number(row.strength_model ?? 1).toFixed(2)}</span>
-      <button type="button" title="Remove">${ICONS.close}</button>
-    </div>
-  `).join("");
+  const itemsByName = new Map((Array.isArray(catalog) ? catalog : []).map((item) => [item.name, item]));
+  container.innerHTML = rows.map((row, index) => {
+    const item = itemsByName.get(row.name);
+    const thumb = item?.preview
+      ? `<img src="${escapeHtml(item.preview)}" alt="">`
+      : `<span>No<br>img</span>`;
+    return `
+      <div class="volt-lora-chip" data-index="${index}">
+        <button class="volt-lora-chip-switch${row.enabled ? "" : " off"}" type="button" title="${row.enabled ? "Enabled" : "Disabled"}"></button>
+        <div class="volt-lora-chip-thumb">${thumb}</div>
+        <span class="volt-lora-chip-name" title="${escapeHtml(row.name)}">${escapeHtml(displayName(row.name))}</span>
+        <button class="volt-lora-chip-remove" type="button" title="Remove">${ICONS.close}</button>
+      </div>
+    `;
+  }).join("");
   container.querySelectorAll(".volt-lora-chip").forEach((chip) => {
-    chip.querySelector("button").addEventListener("click", () => onRemove(Number(chip.dataset.index)));
+    const index = Number(chip.dataset.index);
+    chip.querySelector(".volt-lora-chip-switch").addEventListener("click", () => onToggle(index));
+    chip.querySelector(".volt-lora-chip-remove").addEventListener("click", () => onRemove(index));
   });
 }
 
@@ -1251,7 +1384,6 @@ function openLoraManager(node, initialRows, onRowsChanged) {
         <div class="volt-lora-side">
           <div class="volt-lora-preview"><div class="volt-lora-preview-empty">No preview</div></div>
           <div class="volt-lora-side-name">Select a LoRA</div>
-          <div class="volt-lora-metadata"><div class="volt-lora-meta-empty">No metadata available</div></div>
           <div>
             <input class="volt-lora-side-strength" type="number" value="1.00" step="0.01" min="-100" max="100" title="Strength">
             <input class="volt-lora-side-note" type="text" placeholder="Note..." title="Note" style="margin-top:8px">
@@ -1260,6 +1392,13 @@ function openLoraManager(node, initialRows, onRowsChanged) {
             <button class="volt-lora-load" type="button">${ICONS.load}<span>Load</span></button>
             <button class="volt-lora-remove" type="button">${ICONS.trash}<span>Remove</span></button>
             <button class="volt-lora-civitai" type="button" disabled>${ICONS.external}<span>No Link</span></button>
+          </div>
+          <div class="volt-lora-metadata"><div class="volt-lora-meta-empty">No metadata available</div></div>
+        </div>
+        <div class="volt-lora-loaded-panel">
+          <div class="volt-lora-loaded-head">
+            <span class="volt-lora-loaded-title">Loaded LoRAs</span>
+            <span class="volt-lora-loaded-count">0</span>
           </div>
           <div class="volt-lora-selected"></div>
         </div>
@@ -1280,6 +1419,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   const strength = backdrop.querySelector(".volt-lora-side-strength");
   const note = backdrop.querySelector(".volt-lora-side-note");
   const selectedBox = backdrop.querySelector(".volt-lora-selected");
+  const selectedCount = backdrop.querySelector(".volt-lora-loaded-count");
   const loadButton = backdrop.querySelector(".volt-lora-load");
   const removeButton = backdrop.querySelector(".volt-lora-remove");
   const civitaiButton = backdrop.querySelector(".volt-lora-civitai");
@@ -1289,13 +1429,24 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   const collapsedFolders = new Set();
   let selected = null;
 
+  const renderLoadedRows = () => {
+    const previousScrollTop = selectedBox.scrollTop || 0;
+    const wasNearBottom = selectedBox.scrollTop + selectedBox.clientHeight >= selectedBox.scrollHeight - 4;
+    selectedCount.textContent = String(rows.length);
+    renderSelected(selectedBox, rows, catalog, (index) => {
+      rows.splice(index, 1);
+      commit();
+    }, (index) => {
+      rows[index].enabled = !rows[index].enabled;
+      commit();
+    });
+    selectedBox.scrollTop = wasNearBottom ? selectedBox.scrollHeight : previousScrollTop;
+  };
+
   const commit = () => {
     rows = normalizeRows(rows);
     onRowsChanged(rows);
-    renderSelected(selectedBox, rows, (index) => {
-      rows.splice(index, 1);
-      commit();
-    });
+    renderLoadedRows();
   };
 
   const close = () => {
@@ -1311,7 +1462,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
 
   const selectItem = (item) => {
     selected = item;
-    sideName.textContent = fileName(item.name);
+    sideName.textContent = displayName(item.name);
     sideName.title = item.name;
     renderMetadata(metadataBox, item.metadata);
     const civitaiUrl = item.civitai_url || "";
@@ -1418,7 +1569,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
       <div class="volt-lora-item${selected?.name === item.name ? " active" : ""}" data-name="${escapeHtml(item.name)}">
         <div class="volt-lora-thumb">${item.preview ? `<img src="${item.preview}" alt="">` : "No preview"}</div>
         <div>
-          <div class="volt-lora-item-name" title="${escapeHtml(item.name)}">${escapeHtml(fileName(item.name))}</div>
+          <div class="volt-lora-item-name" title="${escapeHtml(item.name)}">${escapeHtml(displayName(item.name))}</div>
           <div class="volt-lora-item-dir">${escapeHtml(item.directory || "")}</div>
         </div>
         <button class="volt-lora-load" type="button">${ICONS.load}<span>Load</span></button>
@@ -1449,13 +1600,11 @@ function openLoraManager(node, initialRows, onRowsChanged) {
     window.open(selected.civitai_url, "_blank", "noopener,noreferrer");
   });
   search.addEventListener("input", renderList);
-  renderSelected(selectedBox, rows, (index) => {
-    rows.splice(index, 1);
-    commit();
-  });
+  renderLoadedRows();
 
   loadLoraCatalog().then((items) => {
     catalog = items;
+    renderLoadedRows();
     renderFolders();
     renderList();
     const firstVisible = catalog.find((item) => itemInFolder(item, selectedFolder));
