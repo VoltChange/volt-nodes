@@ -4,7 +4,7 @@ import { api } from "../../scripts/api.js";
 const NODE_NAME = "VoltMultiLoraLoader";
 const NONE_LORA = "None";
 const MAX_SLOTS = 20;
-const MAX_VISIBLE_ROWS = 5;
+const MAX_VISIBLE_ROWS = 3;
 const MIN_NODE_WIDTH = 760;
 const ROW_HEIGHT = 66;
 const BASE_HEIGHT = 154;
@@ -343,6 +343,52 @@ function ensureStyles() {
       max-height: ${MAX_VISIBLE_ROWS * ROW_HEIGHT}px;
       overflow-y: auto;
       padding-right: 6px;
+    }
+    .volt-lora-node-rows.scrolling,
+    .volt-lora-folder-list,
+    .volt-lora-list,
+    .volt-lora-side,
+    .volt-lora-selected {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(50, 78, 98, .96) rgba(5, 8, 13, .36);
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar,
+    .volt-lora-folder-list::-webkit-scrollbar,
+    .volt-lora-list::-webkit-scrollbar,
+    .volt-lora-side::-webkit-scrollbar,
+    .volt-lora-selected::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar-track,
+    .volt-lora-folder-list::-webkit-scrollbar-track,
+    .volt-lora-list::-webkit-scrollbar-track,
+    .volt-lora-side::-webkit-scrollbar-track,
+    .volt-lora-selected::-webkit-scrollbar-track {
+      background: rgba(5, 8, 13, .36);
+      border-radius: 999px;
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar-thumb,
+    .volt-lora-folder-list::-webkit-scrollbar-thumb,
+    .volt-lora-list::-webkit-scrollbar-thumb,
+    .volt-lora-side::-webkit-scrollbar-thumb,
+    .volt-lora-selected::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(26,41,56,.98), rgba(14,22,33,.98));
+      border: 0;
+      border-left: 3px solid rgba(118, 232, 255, .92);
+      border-right: 1px solid rgba(164, 143, 255, .48);
+      border-radius: 999px;
+      box-shadow: inset 1px 0 0 rgba(235, 255, 255, .35), inset 0 0 0 1px rgba(5, 8, 13, .58);
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar-thumb:hover,
+    .volt-lora-folder-list::-webkit-scrollbar-thumb:hover,
+    .volt-lora-list::-webkit-scrollbar-thumb:hover,
+    .volt-lora-side::-webkit-scrollbar-thumb:hover,
+    .volt-lora-selected::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(33,51,68,.98), rgba(17,27,40,.98));
+      border-left-color: rgba(142, 240, 255, 1);
+      border-right-color: rgba(178, 160, 255, .62);
+      box-shadow: inset 1px 0 0 rgba(240, 255, 255, .48), inset 0 0 0 1px rgba(5, 8, 13, .50);
     }
     .volt-lora-node-row {
       box-sizing: border-box;

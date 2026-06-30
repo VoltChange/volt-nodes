@@ -8,9 +8,8 @@ import comfy.sd
 import comfy.utils
 import folder_paths
 from aiohttp import web
-from comfy_api.latest import ComfyExtension, io
+from comfy_api.latest import io
 from server import PromptServer
-from typing_extensions import override
 
 
 NODE_ID = "VoltMultiLoraLoader"
@@ -304,12 +303,3 @@ class VoltMultiLoraLoader(io.ComfyNode):
     def execute(cls, model, loras_config=DEFAULT_CONFIG):
         return io.NodeOutput(_apply_loras(model, _parse_config(loras_config)))
 
-
-class VoltNodesExtension(ComfyExtension):
-    @override
-    async def on_load(self) -> None:
-        register_routes()
-
-    @override
-    async def get_node_list(self) -> list[type[io.ComfyNode]]:
-        return [VoltMultiLoraLoader]
