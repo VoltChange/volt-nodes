@@ -5,7 +5,7 @@ const NODE_NAME = "VoltMultiLoraLoader";
 const NONE_LORA = "None";
 const MAX_SLOTS = 20;
 const MAX_VISIBLE_ROWS = 3;
-const MIN_NODE_WIDTH = 760;
+const MIN_NODE_WIDTH = 500;
 const ROW_HEIGHT = 66;
 const BASE_HEIGHT = 154;
 const ALL_FOLDERS = "__all__";
@@ -319,8 +319,8 @@ function ensureStyles() {
     }
     .volt-lora-node-head {
       display: grid;
-      grid-template-columns: 62px minmax(260px, 1fr) 120px minmax(170px, .62fr) 48px;
-      gap: 10px;
+      grid-template-columns: 54px minmax(128px, 1fr) 82px minmax(84px, .62fr) 36px;
+      gap: 8px;
       align-items: center;
       margin: 0 0 9px;
       padding: 0 4px;
@@ -330,6 +330,7 @@ function ensureStyles() {
       letter-spacing: .01em;
     }
     .volt-lora-node-rows {
+      box-sizing: border-box;
       display: grid;
       gap: 10px;
       overflow-y: hidden;
@@ -339,7 +340,8 @@ function ensureStyles() {
     .volt-lora-node-rows.scrolling {
       max-height: ${MAX_VISIBLE_ROWS * ROW_HEIGHT}px;
       overflow-y: auto;
-      padding-right: 6px;
+      padding-right: 14px;
+      scrollbar-gutter: stable;
     }
     .volt-lora-node-rows.scrolling,
     .volt-lora-folder-list,
@@ -412,8 +414,8 @@ function ensureStyles() {
     .volt-lora-node-row {
       box-sizing: border-box;
       display: grid;
-      grid-template-columns: 62px minmax(260px, 1fr) 120px minmax(170px, .62fr) 48px;
-      gap: 10px;
+      grid-template-columns: 54px minmax(128px, 1fr) 82px minmax(84px, .62fr) 36px;
+      gap: 8px;
       align-items: center;
       justify-items: stretch;
       height: 56px;
@@ -438,8 +440,8 @@ function ensureStyles() {
       position: relative;
       align-self: center;
       justify-self: center;
-      width: 50px;
-      height: 34px;
+      width: 46px;
+      height: 32px;
       padding: 0;
       margin: 0;
       border: 1px solid #2f9b62;
@@ -453,9 +455,9 @@ function ensureStyles() {
       content: "";
       position: absolute;
       top: 4px;
-      left: 18px;
-      width: 24px;
-      height: 24px;
+      left: 17px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: #e6f5ec;
       transition: left .12s ease;
@@ -467,7 +469,7 @@ function ensureStyles() {
       box-shadow: none;
     }
     .volt-lora-switch.off::after {
-      left: 6px;
+      left: 5px;
       background: #a2a2a2;
     }
     .volt-lora-name,
@@ -500,7 +502,7 @@ function ensureStyles() {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 38px;
       font-weight: 700;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.015);
@@ -509,7 +511,7 @@ function ensureStyles() {
       padding: 0 8px;
       text-align: center;
       color: #d8e8f6;
-      font-size: 15px;
+      font-size: 14px;
       line-height: 38px;
       font-variant-numeric: tabular-nums;
     }
@@ -525,8 +527,8 @@ function ensureStyles() {
       justify-content: center;
       align-self: center;
       justify-self: center;
-      width: 42px;
-      height: 40px;
+      width: 34px;
+      height: 38px;
       padding: 0;
       margin: 0;
       border: 1px solid #9a3942;
@@ -539,8 +541,8 @@ function ensureStyles() {
       transition: filter .12s ease, border-color .12s ease, box-shadow .12s ease;
     }
     .volt-lora-del .volt-lora-icon {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       stroke-width: 2.3;
     }
     .volt-lora-add {

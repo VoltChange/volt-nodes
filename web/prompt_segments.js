@@ -3,9 +3,9 @@ import { app } from "../../scripts/app.js";
 const NODE_NAME = "VoltPromptSegments";
 const MAX_SEGMENTS = 64;
 const MAX_VISIBLE_SEGMENTS = 3;
-const MIN_NODE_WIDTH = 720;
-const SEGMENT_HEIGHT = 136;
-const BASE_HEIGHT = 182;
+const MIN_NODE_WIDTH = 480;
+const SEGMENT_HEIGHT = 108;
+const BASE_HEIGHT = 158;
 const DEFAULT_SEPARATOR = ", ";
 
 const ICONS = {
@@ -215,22 +215,22 @@ function ensureStyles() {
     .volt-prompt-toolbar {
       display: grid;
       grid-template-columns: auto 1fr;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       color: #b4b4b4;
     }
     .volt-prompt-toolbar-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       min-width: 0;
       font-weight: 700;
       color: var(--volt-text);
     }
     .volt-prompt-separator-wrap {
       display: grid;
-      grid-template-columns: auto minmax(180px, 1fr);
+      grid-template-columns: auto minmax(110px, 1fr);
       gap: 8px;
       align-items: center;
       min-width: 0;
@@ -241,7 +241,7 @@ function ensureStyles() {
       box-sizing: border-box;
       width: 100%;
       min-width: 0;
-      height: 34px;
+      height: 30px;
       padding: 0 10px;
       color: var(--volt-text);
       background: #1e1e22;
@@ -259,7 +259,7 @@ function ensureStyles() {
     }
     .volt-prompt-list {
       display: grid;
-      gap: 10px;
+      gap: 8px;
       overflow-x: hidden;
       overflow-y: hidden;
     }
@@ -293,7 +293,7 @@ function ensureStyles() {
     }
     .volt-prompt-card {
       box-sizing: border-box;
-      height: 126px;
+      height: 100px;
       min-width: 0;
       overflow: hidden;
       background: #24242b;
@@ -314,11 +314,11 @@ function ensureStyles() {
     }
     .volt-prompt-card-head {
       display: grid;
-      grid-template-columns: 44px auto minmax(120px, 1fr) 38px;
+      grid-template-columns: 40px auto minmax(80px, 1fr) 34px;
       gap: 8px;
       align-items: center;
-      height: 40px;
-      padding: 6px 8px;
+      height: 34px;
+      padding: 4px 8px;
       background: #302f3e;
       border-bottom: 1px solid #3d3d46;
     }
@@ -340,14 +340,14 @@ function ensureStyles() {
       transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
     }
     .volt-prompt-label {
-      height: 30px;
+      height: 26px;
       padding: 0 10px;
       border-radius: 6px;
       font-weight: 700;
     }
     .volt-prompt-text {
-      height: 86px;
-      padding: 9px 10px;
+      height: 64px;
+      padding: 7px 10px;
       border: 0;
       border-radius: 0;
       resize: none;
@@ -358,7 +358,7 @@ function ensureStyles() {
     .volt-prompt-switch {
       position: relative;
       justify-self: center;
-      width: 34px;
+      width: 32px;
       height: 24px;
       padding: 0;
       margin: 0;
@@ -373,9 +373,9 @@ function ensureStyles() {
       content: "";
       position: absolute;
       top: 3px;
-      left: 14px;
-      width: 16px;
-      height: 16px;
+      left: 13px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
       background: #e6f5ec;
       box-shadow: 0 1px 4px rgba(0,0,0,.35);
@@ -394,8 +394,8 @@ function ensureStyles() {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 30px;
-      height: 30px;
+      width: 28px;
+      height: 28px;
       padding: 0;
       border: 1px solid #9a3942;
       border-radius: 7px;
@@ -410,8 +410,8 @@ function ensureStyles() {
       justify-content: center;
       gap: 8px;
       width: 100%;
-      height: 46px;
-      margin-top: 12px;
+      height: 40px;
+      margin-top: 8px;
       border: 1px dashed #4f74ad;
       border-radius: 8px;
       color: #56a8ff;
