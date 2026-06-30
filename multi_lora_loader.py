@@ -292,7 +292,7 @@ class VoltMultiLoraLoader(io.ComfyNode):
         return io.Schema(
             node_id=NODE_ID,
             display_name="Volt Multi LoRA Loader",
-            category="loaders/LoRA",
+            category="Volt Nodes",
             description="Model-only multi LoRA loader with a frontend management panel.",
             inputs=inputs,
             outputs=[io.Model.Output("MODEL")],
@@ -302,4 +302,3 @@ class VoltMultiLoraLoader(io.ComfyNode):
     @classmethod
     def execute(cls, model, loras_config=DEFAULT_CONFIG):
         return io.NodeOutput(_apply_loras(model, _parse_config(loras_config)))
-

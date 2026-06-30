@@ -67,7 +67,7 @@ class VoltPromptSegments(io.ComfyNode):
         return io.Schema(
             node_id=NODE_ID,
             display_name="Volt Prompt Segments",
-            category="text/prompt",
+            category="Volt Nodes",
             description="Manage prompt text segments and join enabled segments with a configurable separator.",
             inputs=[
                 io.String.Input(
