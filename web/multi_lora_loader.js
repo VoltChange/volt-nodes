@@ -298,26 +298,23 @@ function ensureStyles() {
       width: 100%;
       min-width: 0;
       position: relative;
-      padding: 14px;
+      padding: 10px 14px 12px;
       color: var(--volt-text);
       font: 13px Arial, sans-serif;
       user-select: none;
       overflow: hidden;
-      background:
-        linear-gradient(180deg, rgba(20,29,39,.96), rgba(9,13,19,.96)),
-        radial-gradient(circle at 18% 0%, rgba(66,215,255,.13), transparent 34%),
-        radial-gradient(circle at 82% 100%, rgba(139,111,255,.11), transparent 38%);
-      border: 1px solid rgba(66,215,255,.18);
-      border-radius: 10px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 0 0 1px rgba(139,111,255,.045), 0 10px 26px rgba(0,0,0,.20);
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
     }
     .volt-lora-node::before {
       content: "";
       position: absolute;
       inset: 0 0 auto;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(66,215,255,.55), rgba(139,111,255,.34), transparent);
-      opacity: .65;
+      background: transparent;
+      opacity: 0;
       pointer-events: none;
     }
     .volt-lora-node-head {
@@ -327,7 +324,7 @@ function ensureStyles() {
       align-items: center;
       margin: 0 0 9px;
       padding: 0 4px;
-      color: #8fa1ba;
+      color: #a6a6a6;
       font-size: 12px;
       line-height: 18px;
       letter-spacing: .01em;
@@ -390,6 +387,28 @@ function ensureStyles() {
       border-right-color: rgba(178, 160, 255, .62);
       box-shadow: inset 1px 0 0 rgba(240, 255, 255, .48), inset 0 0 0 1px rgba(5, 8, 13, .50);
     }
+    .volt-lora-node-rows.scrolling {
+      scrollbar-color: #555b66 rgba(30,30,30,.34);
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar-track {
+      background: rgba(30,30,30,.34);
+      border-radius: 999px;
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar-thumb {
+      background: #4a505a;
+      border: 2px solid rgba(30,30,30,.34);
+      border-radius: 999px;
+      box-shadow: none;
+    }
+    .volt-lora-node-rows.scrolling::-webkit-scrollbar-thumb:hover {
+      background: #606875;
+      border-color: rgba(30,30,30,.26);
+      box-shadow: none;
+    }
     .volt-lora-node-row {
       box-sizing: border-box;
       display: grid;
@@ -399,22 +418,21 @@ function ensureStyles() {
       justify-items: stretch;
       height: 56px;
       padding: 6px;
-      background: linear-gradient(180deg, rgba(19,29,39,.96), rgba(10,16,23,.96));
-      border: 1px solid rgba(66,215,255,.40);
+      background: #24242b;
+      border: 1px solid #3d4050;
       border-radius: 8px;
-      box-shadow: inset 0 0 0 1px rgba(139,111,255,.045), 0 0 16px rgba(66,215,255,.075);
-      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease, transform .14s ease;
+      box-shadow: inset 3px 0 0 rgba(74,151,255,.76);
+      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
     }
     .volt-lora-node-row.disabled {
-      border-color: var(--volt-border);
+      border-color: #383838;
       box-shadow: none;
       opacity: .72;
     }
     .volt-lora-node-row:hover {
-      background: linear-gradient(180deg, rgba(24,36,48,.98), rgba(12,19,27,.98));
-      border-color: rgba(66,215,255,.66);
-      box-shadow: inset 0 0 0 1px rgba(139,111,255,.10), 0 0 18px rgba(66,215,255,.14);
-      transform: translateY(-1px);
+      background: #2a2a33;
+      border-color: #5a6478;
+      box-shadow: inset 3px 0 0 rgba(83,158,255,.86);
     }
     .volt-lora-switch {
       position: relative;
@@ -424,11 +442,11 @@ function ensureStyles() {
       height: 34px;
       padding: 0;
       margin: 0;
-      border: 1px solid var(--volt-green-border);
+      border: 1px solid #2f9b62;
       border-radius: 999px;
-      background: linear-gradient(180deg, #20864a, var(--volt-green));
+      background: #23834c;
       cursor: pointer;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 12px rgba(42,174,100,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
       transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
     }
     .volt-lora-switch::after {
@@ -439,18 +457,18 @@ function ensureStyles() {
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #e8fff5;
+      background: #e6f5ec;
       transition: left .12s ease;
       box-shadow: 0 1px 4px rgba(0,0,0,.35);
     }
     .volt-lora-switch.off {
-      background: #29313b;
-      border-color: #526070;
+      background: #3a3a3a;
+      border-color: #5a5a5a;
       box-shadow: none;
     }
     .volt-lora-switch.off::after {
       left: 6px;
-      background: #93a0b0;
+      background: #a2a2a2;
     }
     .volt-lora-name,
     .volt-lora-note,
@@ -460,8 +478,8 @@ function ensureStyles() {
       min-width: 0;
       height: 38px;
       color: var(--volt-text);
-      background: rgba(12,18,25,.95);
-      border: 1px solid rgba(45,62,80,.95);
+      background: #1e1e22;
+      border: 1px solid #454854;
       border-radius: 6px;
       outline: none;
       align-self: center;
@@ -472,8 +490,8 @@ function ensureStyles() {
     .volt-lora-note:focus,
     .volt-lora-strength:focus {
       border-color: rgba(66,215,255,.72);
-      box-shadow: 0 0 0 1px rgba(66,215,255,.13), 0 0 14px rgba(66,215,255,.10);
-      background: rgba(20,29,39,.98);
+      box-shadow: 0 0 0 1px rgba(74,151,255,.16);
+      background: #24242a;
     }
     .volt-lora-name {
       display: flex;
@@ -490,15 +508,15 @@ function ensureStyles() {
     .volt-lora-strength {
       padding: 0 8px;
       text-align: center;
-      color: #9feaff;
+      color: #d8e8f6;
       font-size: 15px;
       line-height: 38px;
       font-variant-numeric: tabular-nums;
     }
     .volt-lora-note {
       padding: 0 10px;
-      background: rgba(22,19,42,.92);
-      border-color: rgba(139,111,255,.38);
+      background: #232030;
+      border-color: #4a4365;
       line-height: 38px;
     }
     .volt-lora-del {
@@ -511,13 +529,13 @@ function ensureStyles() {
       height: 40px;
       padding: 0;
       margin: 0;
-      border: 1px solid var(--volt-red-border);
-      border-radius: 9px;
-      color: #ffe2e5;
-      background: linear-gradient(180deg, #9a202a, var(--volt-red));
+      border: 1px solid #9a3942;
+      border-radius: 8px;
+      color: #f3d5d7;
+      background: #8b242c;
       cursor: pointer;
       font-family: Arial, sans-serif;
-      box-shadow: 0 0 12px rgba(183,67,82,.12);
+      box-shadow: none;
       transition: filter .12s ease, border-color .12s ease, box-shadow .12s ease;
     }
     .volt-lora-del .volt-lora-icon {
@@ -529,14 +547,14 @@ function ensureStyles() {
       width: 100%;
       height: 48px;
       margin-top: 14px;
-      border: 1px solid rgba(139,111,255,.42);
+      border: 1px dashed #4f74ad;
       border-radius: 8px;
-      color: #b7a8ff;
-      background: linear-gradient(180deg, rgba(18,28,39,.98), rgba(9,14,21,.98));
+      color: #56a8ff;
+      background: #2d2d2d;
       cursor: pointer;
       font-size: 18px;
       font-weight: 700;
-      box-shadow: inset 0 0 0 1px rgba(66,215,255,.06), 0 0 16px rgba(139,111,255,.08);
+      box-shadow: none;
       transition: color .14s ease, border-color .14s ease, box-shadow .14s ease, filter .14s ease, background .14s ease;
       display: flex;
       align-items: center;
@@ -550,13 +568,13 @@ function ensureStyles() {
     .volt-lora-add:hover,
     .volt-lora-del:hover,
     .volt-lora-switch:hover {
-      filter: brightness(1.1);
+      filter: brightness(1.08);
     }
     .volt-lora-add:hover {
-      color: #cfc5ff;
-      border-color: rgba(66,215,255,.55);
-      background: linear-gradient(180deg, rgba(22,34,47,.98), rgba(11,17,25,.98));
-      box-shadow: inset 0 0 0 1px rgba(66,215,255,.10), 0 0 20px rgba(66,215,255,.10), 0 0 18px rgba(139,111,255,.10);
+      color: #7dbcff;
+      border-color: #6aa8ec;
+      background: #333333;
+      box-shadow: none;
     }
     .volt-lora-empty-node {
       display: grid;

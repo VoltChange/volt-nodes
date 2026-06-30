@@ -193,26 +193,23 @@ function ensureStyles() {
       position: relative;
       width: 100%;
       min-width: 0;
-      padding: 14px;
+      padding: 10px 14px 12px;
       color: var(--volt-text);
       font: 13px Arial, sans-serif;
       user-select: none;
       overflow: hidden;
-      background:
-        linear-gradient(180deg, rgba(20,29,39,.96), rgba(9,13,19,.96)),
-        radial-gradient(circle at 18% 0%, rgba(66,215,255,.13), transparent 34%),
-        radial-gradient(circle at 82% 100%, rgba(139,111,255,.11), transparent 38%);
-      border: 1px solid rgba(66,215,255,.18);
-      border-radius: 10px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 0 0 1px rgba(139,111,255,.045), 0 10px 26px rgba(0,0,0,.20);
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
     }
     .volt-prompt-node::before {
       content: "";
       position: absolute;
       inset: 0 0 auto;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(66,215,255,.55), rgba(139,111,255,.34), transparent);
-      opacity: .65;
+      background: transparent;
+      opacity: 0;
       pointer-events: none;
     }
     .volt-prompt-toolbar {
@@ -221,7 +218,7 @@ function ensureStyles() {
       gap: 10px;
       align-items: center;
       margin-bottom: 12px;
-      color: var(--volt-text-soft);
+      color: #b4b4b4;
     }
     .volt-prompt-toolbar-title {
       display: flex;
@@ -237,7 +234,7 @@ function ensureStyles() {
       gap: 8px;
       align-items: center;
       min-width: 0;
-      color: var(--volt-muted);
+      color: #9a9a9a;
       font-size: 12px;
     }
     .volt-prompt-separator {
@@ -247,8 +244,8 @@ function ensureStyles() {
       height: 34px;
       padding: 0 10px;
       color: var(--volt-text);
-      background: rgba(18,25,34,.95);
-      border: 1px solid rgba(45,62,80,.95);
+      background: #1e1e22;
+      border: 1px solid #454854;
       border-radius: 6px;
       outline: none;
       transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
@@ -257,8 +254,8 @@ function ensureStyles() {
     .volt-prompt-label:focus,
     .volt-prompt-text:focus {
       border-color: rgba(66,215,255,.70);
-      box-shadow: 0 0 0 1px rgba(66,215,255,.12), 0 0 18px rgba(66,215,255,.08);
-      background: rgba(20,29,39,.98);
+      box-shadow: 0 0 0 1px rgba(74,151,255,.16);
+      background: #24242a;
     }
     .volt-prompt-list {
       display: grid;
@@ -273,51 +270,47 @@ function ensureStyles() {
     }
     .volt-prompt-list.scrolling {
       scrollbar-width: thin;
-      scrollbar-color: rgba(50, 78, 98, .96) rgba(5, 8, 13, .36);
+      scrollbar-color: #555b66 rgba(30,30,30,.34);
     }
     .volt-prompt-list.scrolling::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
     }
     .volt-prompt-list.scrolling::-webkit-scrollbar-track {
-      background: rgba(5, 8, 13, .36);
+      background: rgba(30,30,30,.34);
       border-radius: 999px;
     }
     .volt-prompt-list.scrolling::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, rgba(26,41,56,.98), rgba(14,22,33,.98));
-      border: 0;
-      border-left: 3px solid rgba(118, 232, 255, .92);
-      border-right: 1px solid rgba(164, 143, 255, .48);
+      background: #4a505a;
+      border: 2px solid rgba(30,30,30,.34);
       border-radius: 999px;
-      box-shadow: inset 1px 0 0 rgba(235, 255, 255, .35), inset 0 0 0 1px rgba(5, 8, 13, .58);
+      box-shadow: none;
     }
     .volt-prompt-list.scrolling::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(180deg, rgba(33,51,68,.98), rgba(17,27,40,.98));
-      border-left-color: rgba(142, 240, 255, 1);
-      border-right-color: rgba(178, 160, 255, .62);
-      box-shadow: inset 1px 0 0 rgba(240, 255, 255, .48), inset 0 0 0 1px rgba(5, 8, 13, .50);
+      background: #606875;
+      border-color: rgba(30,30,30,.26);
+      box-shadow: none;
     }
     .volt-prompt-card {
       box-sizing: border-box;
       height: 126px;
       min-width: 0;
       overflow: hidden;
-      background: linear-gradient(180deg, rgba(19,29,39,.96), rgba(10,16,23,.96));
-      border: 1px solid rgba(66,215,255,.38);
+      background: #24242b;
+      border: 1px solid #3d4050;
       border-radius: 8px;
-      box-shadow: inset 0 0 0 1px rgba(139,111,255,.045), 0 0 16px rgba(66,215,255,.075);
-      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease, transform .14s ease, opacity .14s ease;
+      box-shadow: inset 3px 0 0 rgba(74,151,255,.76);
+      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease, opacity .14s ease;
     }
     .volt-prompt-card.disabled {
-      border-color: var(--volt-border);
+      border-color: #383838;
       box-shadow: none;
       opacity: .70;
     }
     .volt-prompt-card:hover {
-      background: linear-gradient(180deg, rgba(24,36,48,.98), rgba(12,19,27,.98));
-      border-color: rgba(66,215,255,.64);
-      box-shadow: inset 0 0 0 1px rgba(139,111,255,.10), 0 0 18px rgba(66,215,255,.13);
-      transform: translateY(-1px);
+      background: #2a2a33;
+      border-color: #5a6478;
+      box-shadow: inset 3px 0 0 rgba(83,158,255,.86);
     }
     .volt-prompt-card-head {
       display: grid;
@@ -326,11 +319,11 @@ function ensureStyles() {
       align-items: center;
       height: 40px;
       padding: 6px 8px;
-      background: linear-gradient(90deg, rgba(66,215,255,.10), rgba(139,111,255,.09));
-      border-bottom: 1px solid rgba(39,52,68,.86);
+      background: #302f3e;
+      border-bottom: 1px solid #3d3d46;
     }
     .volt-prompt-index {
-      color: var(--volt-muted);
+      color: #8e8e98;
       font-variant-numeric: tabular-nums;
       font-size: 12px;
     }
@@ -340,8 +333,8 @@ function ensureStyles() {
       width: 100%;
       min-width: 0;
       color: var(--volt-text);
-      background: rgba(12,18,25,.95);
-      border: 1px solid rgba(45,62,80,.95);
+      background: #1e1e22;
+      border: 1px solid #454854;
       outline: none;
       font-family: Arial, sans-serif;
       transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
@@ -359,8 +352,8 @@ function ensureStyles() {
       border-radius: 0;
       resize: none;
       line-height: 1.38;
-      color: var(--volt-text-soft);
-      background: rgba(8,11,18,.78);
+      color: #bfbfc6;
+      background: #19191f;
     }
     .volt-prompt-switch {
       position: relative;
@@ -369,11 +362,11 @@ function ensureStyles() {
       height: 24px;
       padding: 0;
       margin: 0;
-      border: 1px solid var(--volt-green-border);
+      border: 1px solid #2f9b62;
       border-radius: 999px;
-      background: linear-gradient(180deg, #20864a, var(--volt-green));
+      background: #23834c;
       cursor: pointer;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 12px rgba(42,174,100,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
       transition: background .12s ease, border-color .12s ease, box-shadow .12s ease, filter .12s ease;
     }
     .volt-prompt-switch::after {
@@ -384,18 +377,18 @@ function ensureStyles() {
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #e8fff5;
+      background: #e6f5ec;
       box-shadow: 0 1px 4px rgba(0,0,0,.35);
       transition: left .12s ease, background .12s ease;
     }
     .volt-prompt-switch.off {
-      background: #29313b;
-      border-color: #526070;
+      background: #3a3a3a;
+      border-color: #5a5a5a;
       box-shadow: none;
     }
     .volt-prompt-switch.off::after {
       left: 4px;
-      background: #93a0b0;
+      background: #a2a2a2;
     }
     .volt-prompt-remove {
       display: inline-flex;
@@ -404,10 +397,10 @@ function ensureStyles() {
       width: 30px;
       height: 30px;
       padding: 0;
-      border: 1px solid var(--volt-red-border);
+      border: 1px solid #9a3942;
       border-radius: 7px;
-      color: #ffe2e5;
-      background: linear-gradient(180deg, #9a202a, var(--volt-red));
+      color: #f3d5d7;
+      background: #8b242c;
       cursor: pointer;
       transition: filter .12s ease, border-color .12s ease, box-shadow .12s ease;
     }
@@ -419,25 +412,25 @@ function ensureStyles() {
       width: 100%;
       height: 46px;
       margin-top: 12px;
-      border: 1px solid rgba(139,111,255,.42);
+      border: 1px dashed #4f74ad;
       border-radius: 8px;
-      color: #b7a8ff;
-      background: linear-gradient(180deg, rgba(18,28,39,.98), rgba(9,14,21,.98));
+      color: #56a8ff;
+      background: #2d2d2d;
       cursor: pointer;
       font-size: 16px;
       font-weight: 700;
-      box-shadow: inset 0 0 0 1px rgba(66,215,255,.06), 0 0 16px rgba(139,111,255,.08);
+      box-shadow: none;
       transition: color .14s ease, border-color .14s ease, box-shadow .14s ease, filter .14s ease, background .14s ease;
     }
     .volt-prompt-add:hover {
-      color: #cfc5ff;
-      border-color: rgba(66,215,255,.55);
-      background: linear-gradient(180deg, rgba(22,34,47,.98), rgba(11,17,25,.98));
-      box-shadow: inset 0 0 0 1px rgba(66,215,255,.10), 0 0 20px rgba(66,215,255,.10), 0 0 18px rgba(139,111,255,.10);
+      color: #7dbcff;
+      border-color: #6aa8ec;
+      background: #333333;
+      box-shadow: none;
     }
     .volt-prompt-remove:hover,
     .volt-prompt-switch:hover {
-      filter: brightness(1.1);
+      filter: brightness(1.08);
     }
   `;
   if (!style.isConnected) document.head.appendChild(style);
