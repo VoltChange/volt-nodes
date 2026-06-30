@@ -856,7 +856,8 @@ function ensureStyles() {
       position: relative;
       width: 420px;
       max-width: 100%;
-      height: 560px;
+      height: 380px;
+      flex: 0 0 380px;
       justify-self: center;
       align-self: center;
       isolation: isolate;
@@ -869,6 +870,76 @@ function ensureStyles() {
       color: var(--volt-text);
       font-weight: 700;
       line-height: 1.35;
+    }
+    .volt-lora-metadata {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--volt-border-soft);
+      border-radius: 8px;
+      background: rgba(12,18,25,.72);
+      color: var(--volt-text-soft);
+      font-size: 12px;
+      line-height: 1.38;
+      min-height: 132px;
+      max-height: 220px;
+      flex: 0 0 180px;
+      overflow: auto;
+    }
+    .volt-lora-meta-row {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+    .volt-lora-meta-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+      min-width: 0;
+    }
+    .volt-lora-meta-label {
+      color: var(--volt-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .volt-lora-meta-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      color: var(--volt-text-soft);
+    }
+    .volt-lora-meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .volt-lora-meta-tag {
+      max-width: 100%;
+      padding: 3px 7px;
+      border: 1px solid rgba(139,111,255,.30);
+      border-radius: 999px;
+      background: rgba(22,19,42,.72);
+      color: #d8d1ff;
+      overflow-wrap: anywhere;
+    }
+    button.volt-lora-meta-tag {
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+      transition: border-color .12s ease, background .12s ease, color .12s ease;
+    }
+    button.volt-lora-meta-tag:hover {
+      border-color: rgba(66,215,255,.46);
+      background: rgba(28,57,75,.72);
+      color: #dff7ff;
+    }
+    .volt-lora-meta-placeholder {
+      border-color: rgba(115,129,149,.24);
+      background: rgba(17,24,32,.58);
+      color: var(--volt-muted);
+    }
+    .volt-lora-meta-empty {
+      color: var(--volt-muted);
     }
     .volt-lora-selected {
       min-height: 92px;
@@ -1096,6 +1167,66 @@ function renderSelected(container, rows, onRemove) {
   });
 }
 
+async function copyText(value) {
+  const text = String(value || "");
+  if (!text) return false;
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.style.position = "fixed";
+    area.style.left = "-9999px";
+    area.style.top = "0";
+    document.body.appendChild(area);
+    area.focus();
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } finally {
+      area.remove();
+    }
+    return ok;
+  }
+}
+
+function renderMetadata(container, metadata) {
+  if (!container) return;
+  const info = metadata && typeof metadata === "object" ? metadata : {};
+  const modelName = info.model_name || "-";
+  const creator = info.creator || "-";
+  const baseModel = info.base_model || "-";
+  const triggerWords = Array.isArray(info.trigger_words) ? info.trigger_words.filter(Boolean) : [];
+  const triggerContent = triggerWords.length
+    ? triggerWords.slice(0, 32).map((word) => `<button class="volt-lora-meta-tag volt-lora-meta-copy" type="button" data-copy="${escapeHtml(word)}" title="Copy trigger word">${escapeHtml(word)}</button>`).join("")
+    : `<span class="volt-lora-meta-tag volt-lora-meta-placeholder">No trigger words</span>`;
+
+  container.innerHTML = `
+    <div class="volt-lora-meta-row"><div class="volt-lora-meta-label">Model</div><div class="volt-lora-meta-value">${escapeHtml(modelName)}</div></div>
+    <div class="volt-lora-meta-pair">
+      <div class="volt-lora-meta-row"><div class="volt-lora-meta-label">Creator</div><div class="volt-lora-meta-value">${escapeHtml(creator)}</div></div>
+      <div class="volt-lora-meta-row"><div class="volt-lora-meta-label">Base Model</div><div class="volt-lora-meta-value">${escapeHtml(baseModel)}</div></div>
+    </div>
+    <div class="volt-lora-meta-row">
+      <div class="volt-lora-meta-label">Trigger Words</div>
+      <div class="volt-lora-meta-tags">${triggerContent}</div>
+    </div>
+  `;
+  container.querySelectorAll(".volt-lora-meta-copy").forEach((button) => {
+    button.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      const original = button.textContent;
+      const ok = await copyText(button.dataset.copy);
+      button.textContent = ok ? "Copied" : "Copy failed";
+      window.setTimeout(() => {
+        button.textContent = original;
+      }, 800);
+    });
+  });
+}
+
 function openLoraManager(node, initialRows, onRowsChanged) {
   ensureStyles();
   let rows = normalizeRows(initialRows);
@@ -1120,6 +1251,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
         <div class="volt-lora-side">
           <div class="volt-lora-preview"><div class="volt-lora-preview-empty">No preview</div></div>
           <div class="volt-lora-side-name">Select a LoRA</div>
+          <div class="volt-lora-metadata"><div class="volt-lora-meta-empty">No metadata available</div></div>
           <div>
             <input class="volt-lora-side-strength" type="number" value="1.00" step="0.01" min="-100" max="100" title="Strength">
             <input class="volt-lora-side-note" type="text" placeholder="Note..." title="Note" style="margin-top:8px">
@@ -1144,6 +1276,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   const count = backdrop.querySelector(".volt-lora-count");
   const preview = backdrop.querySelector(".volt-lora-preview");
   const sideName = backdrop.querySelector(".volt-lora-side-name");
+  const metadataBox = backdrop.querySelector(".volt-lora-metadata");
   const strength = backdrop.querySelector(".volt-lora-side-strength");
   const note = backdrop.querySelector(".volt-lora-side-note");
   const selectedBox = backdrop.querySelector(".volt-lora-selected");
@@ -1180,6 +1313,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
     selected = item;
     sideName.textContent = fileName(item.name);
     sideName.title = item.name;
+    renderMetadata(metadataBox, item.metadata);
     const civitaiUrl = item.civitai_url || "";
     civitaiButton.disabled = !civitaiUrl;
     civitaiButton.querySelector("span").textContent = civitaiUrl ? "Civitai" : "No Link";
@@ -1260,7 +1394,9 @@ function openLoraManager(node, initialRows, onRowsChanged) {
   const renderList = () => {
     const query = search.value.trim().toLowerCase();
     const filtered = catalog.filter((item) => {
-      const haystack = `${item.name} ${normalizeDirectory(item.directory)}`.toLowerCase();
+      const meta = item.metadata || {};
+      const triggers = Array.isArray(meta.trigger_words) ? meta.trigger_words.join(" ") : "";
+      const haystack = `${item.name} ${normalizeDirectory(item.directory)} ${meta.creator || ""} ${meta.model_name || ""} ${meta.base_model || ""} ${triggers}`.toLowerCase();
       return itemInFolder(item, selectedFolder) && (!query || haystack.includes(query));
     });
     count.textContent = `${filtered.length} / ${catalog.length} LoRAs`;
@@ -1272,6 +1408,7 @@ function openLoraManager(node, initialRows, onRowsChanged) {
       civitaiButton.querySelector("span").textContent = "No Link";
       civitaiButton.title = "No Civitai metadata link";
       preview.innerHTML = `<div class="volt-lora-preview-empty">No preview</div>`;
+      renderMetadata(metadataBox, null);
       strength.value = "1.00";
       note.value = "";
       return;

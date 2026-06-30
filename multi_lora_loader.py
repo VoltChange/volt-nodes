@@ -3,6 +3,7 @@ from collections import OrderedDict
 import re
 from urllib.parse import quote
 import json
+from html import unescape
 
 import comfy.sd
 import comfy.utils
@@ -24,6 +25,7 @@ _LORA_METADATA_CACHE_LIMIT = 128
 _ROUTES_REGISTERED = False
 _CIVITAI_URL_RE = re.compile(r"https?://(?:www\.)?civitai\.(?:com|red)/[^\s\"'<>)]*", re.IGNORECASE)
 _CIVITAI_AIR_RE = re.compile(r":civitai:(\d+)@(\d+)", re.IGNORECASE)
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 
 def _coerce_float(value, default=1.0):
@@ -202,6 +204,146 @@ def _walk_strings(value):
             yield from _walk_strings(child)
 
 
+def _clean_text(value, limit=1400):
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        value = str(value)
+    value = unescape(_HTML_TAG_RE.sub(" ", value))
+    value = re.sub(r"\s+", " ", value).strip()
+    if limit and len(value) > limit:
+        return value[: limit - 1].rstrip() + "..."
+    return value
+
+
+def _get_path(data, path):
+    current = data
+    for key in path:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def _first_text(data, paths):
+    for path in paths:
+        value = _get_path(data, path)
+        text = _clean_text(value)
+        if text:
+            return text
+    return ""
+
+
+def _first_creator(data):
+    paths = (
+        ("creator", "username"),
+        ("creator", "name"),
+        ("model", "creator", "username"),
+        ("model", "creator", "name"),
+        ("civitai", "creator", "username"),
+        ("civitai", "creator", "name"),
+        ("civitai", "model", "creator", "username"),
+        ("civitai", "model", "creator", "name"),
+        ("author",),
+        ("creatorName",),
+        ("creator_name",),
+    )
+    creator = _first_text(data, paths)
+    if creator:
+        return creator
+    for value in (
+        data.get("creator") if isinstance(data, dict) else None,
+        _get_path(data, ("model", "creator")),
+        _get_path(data, ("civitai", "creator")),
+        _get_path(data, ("civitai", "model", "creator")),
+    ):
+        if isinstance(value, str):
+            creator = _clean_text(value)
+            if creator:
+                return creator
+    return ""
+
+
+def _as_text_list(value):
+    if value is None:
+        return []
+    if isinstance(value, str):
+        pieces = re.split(r"[,;\n]", value)
+    elif isinstance(value, list):
+        pieces = []
+        for item in value:
+            if isinstance(item, dict):
+                pieces.append(item.get("name") or item.get("tag") or item.get("word") or "")
+            else:
+                pieces.append(item)
+    else:
+        pieces = [value]
+
+    result = []
+    seen = set()
+    for piece in pieces:
+        text = _clean_text(piece, limit=120)
+        key = text.lower()
+        if text and key not in seen:
+            seen.add(key)
+            result.append(text)
+    return result
+
+
+def _trigger_words_from_metadata(data):
+    paths = (
+        ("trainedWords",),
+        ("trained_words",),
+        ("triggerWords",),
+        ("trigger_words",),
+        ("activationText",),
+        ("activation_text",),
+        ("version", "trainedWords"),
+        ("modelVersion", "trainedWords"),
+        ("civitai", "trainedWords"),
+        ("civitai", "version", "trainedWords"),
+        ("civitai", "modelVersion", "trainedWords"),
+    )
+    words = []
+    seen = set()
+    for path in paths:
+        for word in _as_text_list(_get_path(data, path)):
+            key = word.lower()
+            if key not in seen:
+                seen.add(key)
+                words.append(word)
+    return words[:80]
+
+
+def _metadata_summary_from_metadata(metadata):
+    if not isinstance(metadata, dict):
+        return None
+
+    summary = {
+        "model_name": _first_text(metadata, (
+            ("model", "name"),
+            ("civitai", "model", "name"),
+            ("name",),
+        )),
+        "creator": _first_creator(metadata),
+        "base_model": _first_text(metadata, (
+            ("baseModel",),
+            ("base_model",),
+            ("version", "baseModel"),
+            ("modelVersion", "baseModel"),
+            ("civitai", "baseModel"),
+            ("civitai", "version", "baseModel"),
+            ("civitai", "modelVersion", "baseModel"),
+        )),
+        "trigger_words": _trigger_words_from_metadata(metadata),
+    }
+    return summary if any(summary.values()) else None
+
+
+def _metadata_summary_for_lora(path):
+    return _metadata_summary_from_metadata(_read_json_sidecar(path))
+
+
 def _civitai_url_from_metadata(metadata):
     if not isinstance(metadata, dict):
         return None
@@ -242,12 +384,14 @@ async def get_loras(_request):
     for name in folder_paths.get_filename_list("loras"):
         path = _safe_lora_path(name)
         preview_path = _preview_for_lora(path)
+        metadata = _read_json_sidecar(path)
         items.append(
             {
                 "name": name,
                 "directory": os.path.dirname(name).replace("\\", "/"),
                 "preview": f"/volt-nodes/lora-preview?name={quote(name)}" if preview_path else None,
-                "civitai_url": _civitai_url_for_lora(path),
+                "civitai_url": _civitai_url_from_metadata(metadata),
+                "metadata": _metadata_summary_from_metadata(metadata),
             }
         )
     return web.json_response({"loras": items})
