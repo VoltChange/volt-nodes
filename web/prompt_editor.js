@@ -1,25 +1,25 @@
 ﻿import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
-import { openMagicLlmServiceModal } from "./volt_magic_llm_shared.js";
+import { openMagicLlmServiceModal } from "./prompt_editor_llm.js";
 
-// 必须与 __init__.py 和 nodes/magic_text.py 中的类名完全一致
-const NODE_NAME = "VoltMagicPromptBox";
-console.log("🔮 Magic Text JS: Loaded!");
+// Must match the backend node_id in prompt_editor.py.
+const NODE_NAME = "VoltPromptEditor";
+console.log("🔮 Prompt Editor JS: Loaded!");
 
-/** 多语言翻译：使用 language_switcher 的 VoltMagicPromptBox 翻译表 */
+/** 多语言翻译：使用 language_switcher 的 VoltPromptEditor 翻译表 */
 function magicT(key) {
     if (key == null || key === "") return key;
     try {
         const fn = typeof window !== "undefined" && window.translateText;
         const lang = typeof window !== "undefined" && window.getCurrentLanguage ? window.getCurrentLanguage() : "zh";
-        return fn ? fn(key, lang, "VoltMagicPromptBox") : key;
+        return fn ? fn(key, lang, "VoltPromptEditor") : key;
     } catch (_) {
         return key;
     }
 }
 
 app.registerExtension({
-    name: "Volt.MagicTextNode",
+    name: "Volt.PromptEditor",
     setup() {
         hookMagicPromptHistoryAfterRun();
     },
@@ -109,7 +109,7 @@ async function magicCollectAndPostPromptHistory() {
             texts.push(raw);
         }
         if (!texts.length) return;
-        const r = await fetch(api.apiURL("/volt/ma/prompt_history"), {
+        const r = await fetch(api.apiURL("/volt/prompt_editor/prompt_history"), {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
@@ -142,7 +142,7 @@ function magicFormatHistoryTime(ts) {
 }
 
 async function magicFetchPromptHistory() {
-    const r = await fetch(api.apiURL("/volt/ma/prompt_history"), { credentials: "same-origin" });
+    const r = await fetch(api.apiURL("/volt/prompt_editor/prompt_history"), { credentials: "same-origin" });
     const j = await r.json();
     return {
         history: Array.isArray(j.history) ? j.history : [],
@@ -152,7 +152,7 @@ async function magicFetchPromptHistory() {
 }
 
 async function magicPostPromptHistory(body) {
-    const r = await fetch(api.apiURL("/volt/ma/prompt_history"), {
+    const r = await fetch(api.apiURL("/volt/prompt_editor/prompt_history"), {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
@@ -381,7 +381,7 @@ const THEME = {
     border: "#3c3c3c",
     text: "#cccccc",
     text2: "#808080",
-    accent: "#9C27B0",   // 紫色主题（与 Magic Assistant 一致）
+    accent: "#9C27B0",
     accent2: "#7B1FA2",
     hover: "#37373d",
     danger: "#f44336",
@@ -465,11 +465,11 @@ function magicFormatTagPreview(content, maxTags = 2) {
 }
 
 /**
- * POST /volt/ma/tag_sets，失败时抛出带服务端 message 的 Error（便于排查 404/权限/JSON 等）。
+ * POST /volt/prompt_editor/tag_sets，失败时抛出带服务端 message 的 Error（便于排查 404/权限/JSON 等）。
  * 使用 new_tagsets 字段，避免极少数环境下键名 new 被异常处理。
  */
 async function magicPostTagSets(body) {
-    const r = await fetch(api.apiURL("/volt/ma/tag_sets"), {
+    const r = await fetch(api.apiURL("/volt/prompt_editor/tag_sets"), {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
@@ -496,14 +496,14 @@ async function magicPostTagSets(body) {
 }
 
 /**
- * 持久化「编辑标签」弹窗尺寸到 userdata/settings.txt（与主弹窗 dialog_size 共用一套 /volt/ma/settings 接口）。
+ * 持久化「编辑标签」弹窗尺寸到 userdata/settings.txt（与主弹窗 dialog_size 共用一套 /volt/prompt_editor/settings 接口）。
  * @param {HTMLElement} modal
  */
 function persistMagicEditTagsModalSize(modal) {
     if (!modal) return;
     const w = modal.offsetWidth;
     const h = modal.offsetHeight;
-    fetch("/volt/ma/settings", {
+    fetch("/volt/prompt_editor/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ edit_tags_modal_size: { width: w, height: h } }),
@@ -513,8 +513,8 @@ function persistMagicEditTagsModalSize(modal) {
 /**
  * 「编辑标签」弹窗：三区域 UI（新建标签 / 收藏标签 可折叠卡片区 + 标签搜索表）。
  * 非模态：shell pointer-events:none，仅本窗体可点。
- * 搜索逻辑与提示词补全一致：GET /volt/ma/prompt_autocomplete?q=&limit=（本地模式）
- * danbooru 模式：GET /volt/ma/danbooru_autocomplete（远端，含分类）
+ * 搜索逻辑与提示词补全一致：GET /volt/prompt_editor/prompt_autocomplete?q=&limit=（本地模式）
+ * danbooru 模式：GET /volt/prompt_editor/danbooru_autocomplete（远端，含分类）
  * @param {object} [ctx]
  * @param {function} [ctx.getTextarea] 主编辑区 textarea
  * @param {function} [ctx.afterInsert] 插入后回调（同步 editorText 等）
@@ -527,7 +527,7 @@ async function showMagicEditTagsModal(shell, ctx = {}) {
     // 读取保存的弹窗尺寸
     let modalSize = { width: 720, height: 560 };
     try {
-        const r = await fetch("/volt/ma/settings", { credentials: "same-origin" });
+        const r = await fetch("/volt/prompt_editor/settings", { credentials: "same-origin" });
         if (r.ok) {
             const all = await r.json();
             if (all.edit_tags_modal_size) modalSize = all.edit_tags_modal_size;
@@ -1078,7 +1078,7 @@ async function showMagicEditTagsModal(shell, ctx = {}) {
             }
             const hint =
                 (e && e.message) ||
-                magicT("保存失败。请检查：1) 已重启 ComfyUI；2) 插件目录下 userdata 可写；3) 浏览器 Network 里 POST /volt/ma/tag_sets 的状态码。");
+                magicT("保存失败。请检查：1) 已重启 ComfyUI；2) 插件目录下 userdata 可写；3) 浏览器 Network 里 POST /volt/prompt_editor/tag_sets 的状态码。");
             alert(hint);
         }
     });
@@ -1667,7 +1667,7 @@ async function showMagicEditTagsModal(shell, ctx = {}) {
                     q,
                     limit: String(MAGIC_TAG_EDITOR_SEARCH_LIMIT),
                 });
-                const url = api.apiURL(`/volt/ma/prompt_autocomplete?${params.toString()}`);
+                const url = api.apiURL(`/volt/prompt_editor/prompt_autocomplete?${params.toString()}`);
                 const res = await fetch(url, { credentials: "same-origin" });
                 const data = await res.json();
                 items = Array.isArray(data.items) ? data.items : [];
@@ -2625,7 +2625,7 @@ async function showMagicEditTagsModal(shell, ctx = {}) {
         // 异步加载数据
         (async () => {
             try {
-                const r = await fetch(api.apiURL("/volt/ma/preset_tags"), { credentials: "same-origin", signal: presetTagsAbort.signal });
+                const r = await fetch(api.apiURL("/volt/prompt_editor/preset_tags"), { credentials: "same-origin", signal: presetTagsAbort.signal });
                 if (!r.ok) throw new Error("HTTP " + r.status);
                 const d = await r.json();
                 presetCategories = Array.isArray(d.categories) ? d.categories : [];
@@ -2651,11 +2651,11 @@ async function showMagicEditTagsModal(shell, ctx = {}) {
     const tagSetsAbort = new AbortController();
     const onTagSetsChangedEv = () => {
         if (!inner.isConnected) return;
-        fetch(api.apiURL("/volt/ma/prompt_autocomplete/invalidate"), {
+        fetch(api.apiURL("/volt/prompt_editor/prompt_autocomplete/invalidate"), {
             method: "POST",
             credentials: "same-origin",
         }).catch(() => {});
-        fetch(api.apiURL("/volt/ma/tag_sets"), { credentials: "same-origin", signal: tagSetsAbort.signal })
+        fetch(api.apiURL("/volt/prompt_editor/tag_sets"), { credentials: "same-origin", signal: tagSetsAbort.signal })
             .then((r) => r.json())
             .then((d) => {
                 if (Array.isArray(d.new)) {
@@ -2672,7 +2672,7 @@ async function showMagicEditTagsModal(shell, ctx = {}) {
 
     (async () => {
         try {
-            const r = await fetch(api.apiURL("/volt/ma/tag_sets"), {
+            const r = await fetch(api.apiURL("/volt/prompt_editor/tag_sets"), {
                 credentials: "same-origin",
                 signal: tagSetsAbort.signal,
             });
@@ -2807,12 +2807,12 @@ function magicNormalizeDanbooruMode(v) {
 }
 
 /**
- * 仅更新 danbooru_mode（POST /volt/ma/settings 会合并写入 settings.txt）
+ * 仅更新 danbooru_mode（POST /volt/prompt_editor/settings 会合并写入 settings.txt）
  */
 async function magicPersistDanbooruModeOnly(mode) {
     const m = magicNormalizeDanbooruMode(mode);
     try {
-        const r = await fetch("/volt/ma/settings", {
+        const r = await fetch("/volt/prompt_editor/settings", {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
@@ -2832,7 +2832,7 @@ async function magicPersistDanbooruModeOnly(mode) {
  */
 async function magicDanbooruCheckConnection() {
     try {
-        const r = await fetch(api.apiURL("/volt/ma/danbooru_check_connection"), {
+        const r = await fetch(api.apiURL("/volt/prompt_editor/danbooru_check_connection"), {
             credentials: "same-origin",
             signal: AbortSignal.timeout(10000),
         });
@@ -2886,7 +2886,7 @@ async function magicDanbooruSearch(q, limit, page = 1, signal, source = "remote"
     if (source !== "remote") {
         params.set("source", source);
     }
-    const r = await fetch(api.apiURL(`/volt/ma/danbooru_autocomplete?${params.toString()}`), {
+    const r = await fetch(api.apiURL(`/volt/prompt_editor/danbooru_autocomplete?${params.toString()}`), {
         credentials: "same-origin",
         signal,
     });
@@ -2944,7 +2944,7 @@ function persistMagicDialogSize(dialog, dlgCfg) {
     const ta = dialog.querySelector("[data-magic-ta]");
     const taH = readMagicTextareaHeightPx(ta, dlgCfg.textareaMinHeight ?? 160);
     dlgCfg.textareaMinHeight = taH;
-    fetch("/volt/ma/settings", {
+    fetch("/volt/prompt_editor/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dialog_size: { width: w, height: h, textareaMinHeight: taH } }),
@@ -3159,8 +3159,8 @@ function magicNormEnHint(x) {
 }
 
 /**
- * Tag 预览区：词库 /volt/ma/prompt_autocomplete/batch 写入 cnHintCache 后，仍无中文（未缓存或空串）的核心 tag。
- * 返回去重后的「核心英文串」列表（与 batch 的 query 同语义），可一次性 POST /volt/ma/translate_tags_llm。
+ * Tag 预览区：词库 /volt/prompt_editor/prompt_autocomplete/batch 写入 cnHintCache 后，仍无中文（未缓存或空串）的核心 tag。
+ * 返回去重后的「核心英文串」列表（与 batch 的 query 同语义），可一次性 POST /volt/prompt_editor/translate_tags_llm。
  */
 function magicCollectTagsMissingCnHint(textarea, cnHintCache) {
     if (!textarea || !cnHintCache) return [];
@@ -4258,7 +4258,7 @@ function attachMagicPromptAutocomplete(textarea, { onInput, panelMount, scrollRo
 
         // 本地模式
         const params = new URLSearchParams({ q: query, limit: String(acLimit) });
-        const url = api.apiURL(`/volt/ma/prompt_autocomplete?${params.toString()}`);
+        const url = api.apiURL(`/volt/prompt_editor/prompt_autocomplete?${params.toString()}`);
         try {
             const res = await fetch(url, { signal: acAbort.signal, credentials: "same-origin" });
             const data = await res.json();
@@ -4343,7 +4343,7 @@ function syncMagicPromptTextWidget(node, textWidget, value) {
     }
 }
 
-// 主弹窗函数（需 async：打开时 await 读取 /volt/ma/settings）
+// 主弹窗函数（需 async：打开时 await 读取 /volt/prompt_editor/settings）
 window.showPromptEditorModal = async function(node, nodeSeed) {
     // 同时只保留一个浮动编辑器；再打开时先关闭上一个（会落盘尺寸）
     document.querySelectorAll("[data-magic-prompt-shell='1']").forEach((el) => {
@@ -4381,7 +4381,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
         danbooru_mode: "local",
     };
     try {
-        const r = await fetch("/volt/ma/settings", { credentials: "same-origin" });
+        const r = await fetch("/volt/prompt_editor/settings", { credentials: "same-origin" });
         if (r.ok) {
             const all = await r.json();
             if (all.dialog_size) ds.dialog_size = all.dialog_size;
@@ -4897,7 +4897,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
 
         (async () => {
             try {
-                const r = await fetch(api.apiURL("/volt/ma/tag_sets"), { credentials: "same-origin" });
+                const r = await fetch(api.apiURL("/volt/prompt_editor/tag_sets"), { credentials: "same-origin" });
                 const d = await r.json();
                 shell._magicFavoritesList = Array.isArray(d.favorites) ? d.favorites : [];
                 shell._magicFavoriteEnKeys = new Set(
@@ -5238,7 +5238,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
                     const forceChipRefresh = translateMode === "force";
                     if (sub && sub.isConnected) sub.textContent = "…";
                     try {
-                        const r = await fetch(api.apiURL("/volt/ma/translate_tags_llm"), {
+                        const r = await fetch(api.apiURL("/volt/prompt_editor/translate_tags_llm"), {
                             method: "POST",
                             credentials: "same-origin",
                             headers: { "Content-Type": "application/json" },
@@ -6032,7 +6032,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
                 const queries = pendingCnHints.map((p) => p.coreRaw.slice(0, 80));
                 (async () => {
                     try {
-                        const res = await fetch(api.apiURL("/volt/ma/prompt_autocomplete/batch"), {
+                        const res = await fetch(api.apiURL("/volt/prompt_editor/prompt_autocomplete/batch"), {
                             method: "POST",
                             credentials: "same-origin",
                             headers: { "Content-Type": "application/json" },
@@ -6229,7 +6229,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
                                 typeof shell._magicFormatOptions === "object"
                                     ? shell._magicFormatOptions
                                     : magicMergeFormatOptions(null);
-                            const res = await fetch(api.apiURL("/volt/ma/format_prompt"), {
+                            const res = await fetch(api.apiURL("/volt/prompt_editor/format_prompt"), {
                                 method: "POST",
                                 credentials: "same-origin",
                                 headers: { "Content-Type": "application/json" },
@@ -6374,7 +6374,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
             void (async () => {
                 translateInput.disabled = true;
                 try {
-                    const r = await fetch(api.apiURL("/volt/ma/translate_line_llm"), {
+                    const r = await fetch(api.apiURL("/volt/prompt_editor/translate_line_llm"), {
                         method: "POST",
                         credentials: "same-origin",
                         headers: { "Content-Type": "application/json" },
@@ -6394,7 +6394,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
                     translateInput.value = "";
                     let seeded = 0;
                     try {
-                        const sr = await fetch(api.apiURL("/volt/ma/llm_translation_cache/seed_from_line"), {
+                        const sr = await fetch(api.apiURL("/volt/prompt_editor/llm_translation_cache/seed_from_line"), {
                             method: "POST",
                             credentials: "same-origin",
                             headers: { "Content-Type": "application/json" },
@@ -6449,7 +6449,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
                 translateBtn.disabled = true;
                 translateBtn.textContent = magicT("翻译 ") + toSend.length + magicT(" 条…");
                 try {
-                    const r = await fetch(api.apiURL("/volt/ma/translate_tags_llm"), {
+                    const r = await fetch(api.apiURL("/volt/prompt_editor/translate_tags_llm"), {
                         method: "POST",
                         credentials: "same-origin",
                         headers: { "Content-Type": "application/json" },
@@ -6962,7 +6962,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
         /* —— 2 · 格式化（各选项独立生效，不含修复分区语法）—— */
         const panel2 = mkCollapsible(
             magicT("2 · 格式化详细设置"),
-            magicT("对应「编辑」Tab 的 💫 格式化按钮；调用后端 /volt/ma/format_prompt。各选项独立生效，勾哪个跑哪个。「清理逗号」「修复括号」始终独立执行；高级步骤（下划线/权重/括号转义）按勾选各自处理；全部高级子项关闭时后端直接返回原文本。"),
+            magicT("对应「编辑」Tab 的 💫 格式化按钮；调用后端 /volt/prompt_editor/format_prompt。各选项独立生效，勾哪个跑哪个。「清理逗号」「修复括号」始终独立执行；高级步骤（下划线/权重/括号转义）按勾选各自处理；全部高级子项关闭时后端直接返回原文本。"),
             false,
         );
         const foLive = magicMergeFormatOptions(stRef && stRef.format_options);
@@ -7115,7 +7115,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
 
         const refillTranslateProfileOptions = async () => {
             try {
-                const r = await fetch(api.apiURL("/volt/ma/get_config"), { credentials: "same-origin" });
+                const r = await fetch(api.apiURL("/volt/prompt_editor/get_config"), { credentials: "same-origin" });
                 const d = await r.json();
                 const llm = d.llm && typeof d.llm === "object" ? d.llm : {};
                 const keys = Object.keys(llm);
@@ -7480,7 +7480,7 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
                 danbooru_mode: getDanbooruMode(),
             };
 
-            return fetch("/volt/ma/settings", {
+            return fetch("/volt/prompt_editor/settings", {
                 method: "POST",
                 credentials: "same-origin",
                 headers: { "Content-Type": "application/json" },

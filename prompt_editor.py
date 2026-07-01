@@ -1,9 +1,9 @@
-import re
+﻿import re
 
 from comfy_api.latest import io
 
 
-NODE_ID = "VoltMagicPromptBox"
+NODE_ID = "VoltPromptEditor"
 
 
 def _ensure_trailing_comma_per_line(text: str) -> str:
@@ -34,14 +34,14 @@ def _active_prompt_string(text: str) -> str:
     return ", ".join(parts)
 
 
-class VoltMagicPromptBox(io.ComfyNode):
+class VoltPromptEditor(io.ComfyNode):
     @classmethod
     def define_schema(cls):
         return io.Schema(
             node_id=NODE_ID,
-            display_name="Volt Magic Prompt Box",
+            display_name="Prompt Editor",
             category="Volt Nodes",
-            description="Magic Assistant prompt editor ported into Volt Nodes.",
+            description="Prompt editor with autocomplete, tag management, formatting, history, and translation tools.",
             inputs=[
                 io.String.Input(
                     "text",
@@ -64,10 +64,10 @@ class VoltMagicPromptBox(io.ComfyNode):
                 io.Clip.Output("clip"),
             ],
             search_aliases=[
-                "magic prompt box",
                 "prompt editor",
+                "prompt manager",
                 "danbooru prompt",
-                "volt magic",
+                "volt prompt editor",
             ],
         )
 

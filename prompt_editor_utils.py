@@ -67,7 +67,7 @@ def _ma_load_prompt_autocomplete_sync():
                     continue
                 preset_entries.append({"cn": cn, "en": en, "source": "preset"})
         print(
-            f"\033[36m🔮 [Magic Assistant] 预设补全索引已加载: {len(preset_entries)} 条 ({ac_path})\033[0m"
+            f"\033[36m🔮 [Prompt Editor] 预设补全索引已加载: {len(preset_entries)} 条 ({ac_path})\033[0m"
         )
 
     # --- 2. 用户标签组：仅「新建标签」（magic_new_tagsets.txt），收藏已在预设库里，不需要进补全 ---
@@ -95,7 +95,7 @@ def _ma_load_prompt_autocomplete_sync():
 
     if custom_count:
         print(
-            f"\033[36m🔮 [Magic Assistant] 自建标签组已注入补全: {custom_count} 组（整组补全，不含收藏）\033[0m"
+            f"\033[36m🔮 [Prompt Editor] 自建标签组已注入补全: {custom_count} 组（整组补全，不含收藏）\033[0m"
         )
 
     entries = preset_entries + custom_entries
@@ -150,7 +150,7 @@ def _ma_load_prompt_autocomplete_sync():
     preset_norm_list = [e.get("_en_norm_cached") or "" for e in preset_sorted_by_norm]
 
     print(
-        f"\033[36m[Magic Assistant] 补全索引完成 | 预设 {len(preset_entries)} 条 | "
+        f"\033[36m[Prompt Editor] 补全索引完成 | 预设 {len(preset_entries)} 条 | "
         f"自建 {len(custom_entries)} 条 | norm_exact_map {len(norm_exact_map)} 条 | "
         f"cn_norm_map {len(cn_norm_map)} 条（支持 Danbooru 中文搜索）\033[0m"
     )
@@ -659,7 +659,7 @@ def _ma_search_danbooru_preset(q: str, limit: int = 50) -> list[dict]:
     """本地 danbooru预设库 搜索：中文/英文均支持包含匹配，返回最多 limit 条。
 
     排序规则与远端一致：有中文 → 无中文，各段内按热度降序。
-    对外返回的字段与远端 Danbooru /volt/ma/danbooru_autocomplete 完全一致（raw, en, category, count, cn）。
+    对外返回的字段与远端 Danbooru /volt/prompt_editor/danbooru_autocomplete 完全一致（raw, en, category, count, cn）。
     """
     if not q:
         return []
@@ -820,7 +820,7 @@ def _ma_load_preset_tags_sync():
                             cur_cat["groups"].append(fake_grp)
                             cur_grp = fake_grp
         except Exception as e:
-            print(f"\033[31m[Magic Assistant] 加载 preset_tags 失败: {e}\033[0m")
+            print(f"\033[31m[Prompt Editor] 加载 preset_tags 失败: {e}\033[0m")
         _PRESET_TAGS_CACHE = categories
         return categories
 
@@ -831,13 +831,13 @@ def ma_invalidate_preset_tags_cache():
 
 
 # --- API 路由 ---
-@PromptServer.instance.routes.get("/volt/ma/get_config")
+@PromptServer.instance.routes.get("/volt/prompt_editor/get_config")
 async def get_config(request):
     return web.json_response({
         "llm": MagicUtils.get_llm_config(),
     })
 
-@PromptServer.instance.routes.post("/volt/ma/save_config")
+@PromptServer.instance.routes.post("/volt/prompt_editor/save_config")
 async def save_config(request):
     data = await request.json()
     if "llm" in data: MagicUtils._save_user_data("llm_settings.txt", data["llm"])
@@ -845,12 +845,12 @@ async def save_config(request):
 
 
 # --- 统一设置读写（存 userdata/settings.txt，可扩展） ---
-@PromptServer.instance.routes.get("/volt/ma/settings")
+@PromptServer.instance.routes.get("/volt/prompt_editor/settings")
 async def get_settings(request):
     return web.json_response(MagicUtils._load_settings())
 
 
-@PromptServer.instance.routes.post("/volt/ma/format_prompt")
+@PromptServer.instance.routes.post("/volt/prompt_editor/format_prompt")
 async def ma_format_prompt_route(request):
     """前端「格式化」：按 userdata 中 format_options 或请求体覆盖项清洗整段文本。"""
     try:
@@ -880,7 +880,7 @@ async def ma_format_prompt_route(request):
         )
 
 
-@PromptServer.instance.routes.post("/volt/ma/settings")
+@PromptServer.instance.routes.post("/volt/prompt_editor/settings")
 async def save_settings(request):
     data = await request.json()
     MagicUtils._save_settings(data)
@@ -893,7 +893,7 @@ async def save_settings(request):
     return web.json_response({"status": "success"})
 
 
-@PromptServer.instance.routes.get("/volt/ma/prompt_autocomplete")
+@PromptServer.instance.routes.get("/volt/prompt_editor/prompt_autocomplete")
 async def ma_prompt_autocomplete(request):
     """提示词补全：
     - 英文 tag：包含匹配（不区分大小写）→ 'boy' 匹配 '1boy'、'2boys'、'boyshort_panties'
@@ -918,7 +918,7 @@ async def ma_prompt_autocomplete(request):
         return web.json_response({"items": [], "error": str(e)})
 
 
-@PromptServer.instance.routes.post("/volt/ma/prompt_autocomplete/invalidate")
+@PromptServer.instance.routes.post("/volt/prompt_editor/prompt_autocomplete/invalidate")
 async def ma_prompt_autocomplete_invalidate(request):
     """清除补全索引缓存，下次搜索时自动重建（合并预设库 + 最新用户标签组）。"""
     try:
@@ -928,7 +928,7 @@ async def ma_prompt_autocomplete_invalidate(request):
         return web.json_response({"status": "error", "message": str(e)})
 
 
-@PromptServer.instance.routes.post("/volt/ma/prompt_autocomplete/batch")
+@PromptServer.instance.routes.post("/volt/prompt_editor/prompt_autocomplete/batch")
 async def ma_prompt_autocomplete_batch(request):
     """批量查中文提示词（rebuildTagChips 批量获取 chip 翻译用）。
 
@@ -1006,7 +1006,7 @@ async def ma_prompt_autocomplete_batch(request):
                     results[key] = {"en": fuzzy[0], "cn": fuzzy[1]}
 
         print(
-            f"\033[32m[Magic Assistant] batch 词典匹配 | 总查询 {total} 条 | 精确命中 {matched} 条 | 模糊命中 {fuzzy_matched} 条"
+            f"\033[32m[Prompt Editor] batch 词典匹配 | 总查询 {total} 条 | 精确命中 {matched} 条 | 模糊命中 {fuzzy_matched} 条"
             f"{' | 全部命中' if matched + fuzzy_matched == total else f' | 未命中 {total - matched - fuzzy_matched} 条（将走 LLM）' if matched + fuzzy_matched > 0 else ''}\033[0m"
         )
         return web.json_response({"results": results})
@@ -1180,7 +1180,7 @@ def _ma_translate_tags_llm_sync(
     if not to_translate:
         all_items = list(cached_map.values())
         print(
-            f"\033[35m[Magic Assistant] LLM 翻译{'【强制模式】' if send_all else ''}"
+            f"\033[35m[Prompt Editor] LLM 翻译{'【强制模式】' if send_all else ''}"
             f"| LLM 缓存命中 {cache_hit_count}/{len(tags)} 条 | "
             f"本次跳过 LLM（全部已在 LLM 缓存），共 {cache_before_count} 条\033[0m"
         )
@@ -1223,7 +1223,7 @@ def _ma_translate_tags_llm_sync(
     if chip_single and tags:
         qnote = f" | 队列剩余 {queue_waiting} 条" if queue_waiting is not None and queue_waiting >= 0 else ""
         t0 = (tags[0] or "")[:72]
-        print(f"\033[35m[Magic Assistant] 芯片单条 LLM 开始{qnote} | tag={t0!r}\033[0m")
+        print(f"\033[35m[Prompt Editor] 芯片单条 LLM 开始{qnote} | tag={t0!r}\033[0m")
 
     # 新结果写入缓存：仅更新本条目的规范化 key（LRU），不整文件覆盖
     for it in parsed:
@@ -1267,7 +1267,7 @@ def _ma_translate_tags_llm_sync(
         mode_tag = "【强制模式】"
 
     print(
-        f"\033[36m[Magic Assistant] LLM 翻译{mode_tag}"
+        f"\033[36m[Prompt Editor] LLM 翻译{mode_tag}"
         f"| profile={profile} | model={model} | "
         f"{hit_note + ' | ' if hit_note else ''}"
         f"本次 LLM 请求 {len(to_translate)} 条 → 解析 {len(parsed)} 条 | "
@@ -1318,13 +1318,13 @@ def _ma_translate_line_llm_sync(text: str, settings: dict) -> dict:
     ct = usage.get("completion_tokens", 0)
     tt = usage.get("total_tokens", 0)
     print(
-        f"\033[36m[Magic Assistant] LLM 单行翻译 | profile={profile} | model={model} | "
+        f"\033[36m[Prompt Editor] LLM 单行翻译 | profile={profile} | model={model} | "
         f"tokens: prompt={pt} completion={ct} total={tt}\033[0m"
     )
     return {"text": line, "profile_used": profile}
 
 
-@PromptServer.instance.routes.post("/volt/ma/translate_tags_llm")
+@PromptServer.instance.routes.post("/volt/prompt_editor/translate_tags_llm")
 async def ma_translate_tags_llm_route(request):
     """批量翻译 tag 中文释义。
 
@@ -1388,7 +1388,7 @@ async def ma_translate_tags_llm_route(request):
         return web.json_response({"status": "error", "message": str(e)}, status=500)
 
 
-@PromptServer.instance.routes.post("/volt/ma/translate_line_llm")
+@PromptServer.instance.routes.post("/volt/prompt_editor/translate_line_llm")
 async def ma_translate_line_llm_route(request):
     """单行：中/英等 → 英文 tag 行。请求体：{ "text": "..." }"""
     try:
@@ -1674,7 +1674,7 @@ def ma_seed_llm_cache_from_translate_line(source_zh: str, en_line: str) -> int:
     return n
 
 
-@PromptServer.instance.routes.post("/volt/ma/llm_translation_cache/seed_from_line")
+@PromptServer.instance.routes.post("/volt/prompt_editor/llm_translation_cache/seed_from_line")
 async def ma_llm_cache_seed_from_line_route(request):
     """请求体：{ "source_zh": "...", "en_line": "..." } — 与单行译插入框配套，写入 llm_translation_cache。"""
     try:
@@ -1699,14 +1699,14 @@ async def ma_llm_cache_seed_from_line_route(request):
     try:
         loop = asyncio.get_running_loop()
         n = await loop.run_in_executor(None, _run)
-        print(f"\033[36m[Magic Assistant] LLM 缓存 seed_from_line | seeded={n}\033[0m")
+        print(f"\033[36m[Prompt Editor] LLM 缓存 seed_from_line | seeded={n}\033[0m")
         return web.json_response({"status": "success", "seeded": n})
     except Exception as e:
         traceback.print_exc()
         return web.json_response({"status": "error", "message": str(e)}, status=500)
 
 
-@PromptServer.instance.routes.get("/volt/ma/tag_sets")
+@PromptServer.instance.routes.get("/volt/prompt_editor/tag_sets")
 async def ma_get_tag_sets(request):
     """返回 { new: [{name, content}], favorites: [...] }"""
     try:
@@ -1725,7 +1725,7 @@ async def ma_get_tag_sets(request):
         return web.json_response({"new": [], "favorites": [], "error": str(e)})
 
 
-@PromptServer.instance.routes.post("/volt/ma/tag_sets")
+@PromptServer.instance.routes.post("/volt/prompt_editor/tag_sets")
 async def ma_post_tag_sets(request):
     """JSON 可含 new 或 new_tagsets、favorites 之一或两者，均为 [{name, content}]，整文件覆盖。"""
     try:
@@ -1770,12 +1770,12 @@ async def ma_post_tag_sets(request):
     except ValueError as e:
         return web.json_response({"status": "error", "message": str(e)}, status=400)
     except Exception as e:
-        print(f"\033[31m[Magic Assistant] POST /volt/ma/tag_sets 失败: {e}\033[0m")
+        print(f"\033[31m[Prompt Editor] POST /volt/prompt_editor/tag_sets 失败: {e}\033[0m")
         traceback.print_exc()
         return web.json_response({"status": "error", "message": str(e)}, status=500)
 
 
-@PromptServer.instance.routes.get("/volt/ma/preset_tags")
+@PromptServer.instance.routes.get("/volt/prompt_editor/preset_tags")
 async def ma_get_preset_tags(request):
     """返回预设标签组 { categories: [{name, groups: [{name, tags: []}]}] }"""
     try:
@@ -1783,7 +1783,7 @@ async def ma_get_preset_tags(request):
         categories = await loop.run_in_executor(None, _ma_load_preset_tags_sync)
         return web.json_response({"categories": categories})
     except Exception as e:
-        print(f"\033[31m[Magic Assistant] GET /volt/ma/preset_tags 失败: {e}\033[0m")
+        print(f"\033[31m[Prompt Editor] GET /volt/prompt_editor/preset_tags 失败: {e}\033[0m")
         traceback.print_exc()
         return web.json_response({"categories": [], "error": str(e)}, status=500)
 
@@ -1872,7 +1872,7 @@ def ma_trim_prompt_history_to_max():
             ma_save_prompt_history_store(st)
 
 
-@PromptServer.instance.routes.get("/volt/ma/prompt_history")
+@PromptServer.instance.routes.get("/volt/prompt_editor/prompt_history")
 async def ma_get_prompt_history(request):
     """返回 { history, favorites, max_entries }；max_entries 来自 settings。"""
     try:
@@ -1894,7 +1894,7 @@ async def ma_get_prompt_history(request):
         )
 
 
-@PromptServer.instance.routes.post("/volt/ma/prompt_history")
+@PromptServer.instance.routes.post("/volt/prompt_editor/prompt_history")
 async def ma_post_prompt_history(request):
     """JSON: { action, ... } — append_run / delete_history / add_favorite / update_favorite / delete_favorite"""
     try:
@@ -2045,12 +2045,12 @@ async def ma_post_prompt_history(request):
     except ValueError as e:
         return web.json_response({"status": "error", "message": str(e)}, status=400)
     except Exception as e:
-        print(f"\033[31m[Magic Assistant] POST /volt/ma/prompt_history 失败: {e}\033[0m")
+        print(f"\033[31m[Prompt Editor] POST /volt/prompt_editor/prompt_history 失败: {e}\033[0m")
         traceback.print_exc()
         return web.json_response({"status": "error", "message": str(e)}, status=500)
 
 
-@PromptServer.instance.routes.get("/volt/ma/danbooru_autocomplete")
+@PromptServer.instance.routes.get("/volt/prompt_editor/danbooru_autocomplete")
 async def ma_danbooru_autocomplete(request):
     """Danbooru 补全：支持远端（默认）和本地预设库（source=preset）两种数据源。
     查询参数 q（搜索词）、limit（单页条数，默认 100，最大 100）、page（页码，从 1 起）、source（preset | remote）。
@@ -2513,7 +2513,7 @@ def _ma_search_danbooru_remote(q: str, page: int = 1, per_page: int = 100) -> tu
     return page_rows, has_more
 
 
-@PromptServer.instance.routes.get("/volt/ma/danbooru_check_connection")
+@PromptServer.instance.routes.get("/volt/prompt_editor/danbooru_check_connection")
 async def ma_danbooru_check_connection(request):
     """检测远端 Danbooru API 是否可达。返回 {ok, message}。"""
     url = f"{DANBOORU_API_BASE}/tags.json"

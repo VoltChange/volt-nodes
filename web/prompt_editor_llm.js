@@ -1,6 +1,6 @@
 ﻿/**
- * 与 magic_prompt.js 共用：LLM 配置读写 userdata/llm_settings.txt（POST /volt/ma/save_config）。
- * 多功能提示词框（magic_text.js）通过本模块打开同一套「LLM 服务」编辑界面。
+ * Prompt Editor LLM profile editor.
+ * LLM 配置读写 userdata/llm_settings.txt（POST /volt/prompt_editor/save_config）。
  */
 import { api } from "../../scripts/api.js";
 
@@ -12,10 +12,10 @@ export function preventConflictLlm(element) {
 }
 
 /**
- * POST /volt/ma/save_config（提示词编辑器只保存 { llm } 片段）。
+ * POST /volt/prompt_editor/save_config（提示词编辑器只保存 { llm } 片段）。
  */
 export async function saveMagicConfigPartial(partial) {
-    await api.fetchApi("/volt/ma/save_config", {
+    await api.fetchApi("/volt/prompt_editor/save_config", {
         method: "POST",
         body: JSON.stringify(partial),
         headers: { "Content-Type": "application/json" },
@@ -23,7 +23,7 @@ export async function saveMagicConfigPartial(partial) {
 }
 
 /**
- * 仅 LLM 标签页：与 magic_prompt.js 配置中心内「🤖 LLM服务」逻辑一致。
+ * 仅 LLM 标签页：「管理 LLM」配置面板。
  * @param {HTMLElement} content
  * @param {object} ma_config — 至少含 llm: Record<string, {base_url, api_key, model}>
  * @param {() => Promise<void>|void} onAfterSave — 每次成功保存到服务器后
@@ -250,7 +250,7 @@ export async function openMagicLlmServiceModal(opts = {}) {
     const onLlmSaved = typeof opts.onLlmSaved === "function" ? opts.onLlmSaved : null;
     let data;
     try {
-        const response = await api.fetchApi("/volt/ma/get_config");
+        const response = await api.fetchApi("/volt/prompt_editor/get_config");
         data = await response.json();
     } catch (e) {
         alert("无法加载配置：" + e);
