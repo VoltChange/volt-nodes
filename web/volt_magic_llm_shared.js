@@ -2,10 +2,7 @@
  * 与 magic_prompt.js 共用：LLM 配置读写 userdata/llm_settings.txt（POST /volt/ma/save_config）。
  * 多功能提示词框（magic_text.js）通过本模块打开同一套「LLM 服务」编辑界面。
  */
-import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
-
-export const MAGIC_PROMPT_REPLACE_TYPE = "MagicPromptReplace";
 
 export function preventConflictLlm(element) {
     element.addEventListener("pointerdown", (e) => e.stopPropagation());
@@ -15,40 +12,7 @@ export function preventConflictLlm(element) {
 }
 
 /**
- * 刷新画布上所有 MagicPromptReplace 节点的规则/LLM 下拉（与配置中心保存后一致）。
- */
-export async function refreshMagicPromptReplaceNodes() {
-    try {
-        const response = await api.fetchApi("/volt/ma/get_config");
-        const data = await response.json();
-        const allNodes = app.graph.findNodesByType(MAGIC_PROMPT_REPLACE_TYPE);
-        for (const node of allNodes) {
-            if (!node.ma_config) node.ma_config = { rules: {}, llm: {} };
-            node.ma_config.rules = data.rules;
-            node.ma_config.llm = data.llm;
-
-            const ruleNames = Object.values(data.rules || {}).map((r) => r.name);
-            const ruleWidget = node.widgets?.find((w) => w.name === "rule_name");
-            if (ruleWidget) {
-                ruleWidget.options.values = ruleNames.length ? ruleNames : ["No Rules"];
-                if (!ruleNames.includes(ruleWidget.value)) ruleWidget.value = ruleNames[0] || "";
-            }
-
-            const llmNames = Object.keys(data.llm || {});
-            const llmWidget = node.widgets?.find((w) => w.name === "llm_profile");
-            if (llmWidget) {
-                llmWidget.options.values = llmNames.length ? llmNames : ["No Profiles"];
-                if (!llmNames.includes(llmWidget.value)) llmWidget.value = llmNames[0] || "";
-            }
-            node.setDirtyCanvas?.(true, true);
-        }
-    } catch (e) {
-        console.error("[magic_llm_shared] refreshMagicPromptReplaceNodes", e);
-    }
-}
-
-/**
- * POST /volt/ma/save_config（可只传 { llm } / { rules } 等片段）并刷新替换节点下拉。
+ * POST /volt/ma/save_config（提示词编辑器只保存 { llm } 片段）。
  */
 export async function saveMagicConfigPartial(partial) {
     await api.fetchApi("/volt/ma/save_config", {
@@ -56,7 +20,6 @@ export async function saveMagicConfigPartial(partial) {
         body: JSON.stringify(partial),
         headers: { "Content-Type": "application/json" },
     });
-    await refreshMagicPromptReplaceNodes();
 }
 
 /**

@@ -1,9 +1,7 @@
 ﻿import os
 import json
-import shutil
 import re
 import bisect
-import base64
 import asyncio
 import threading
 import uuid
@@ -15,8 +13,6 @@ from server import PromptServer
 from aiohttp import web
 
 from .ma_prompt_cleaning import ma_clean_prompt
-import folder_paths
-import aiohttp
 
 # --- 1. 恢复全局路径定义 (这是为了救活 __init__.py) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -379,11 +375,6 @@ class MagicUtils:
             "model": "gpt-3.5-turbo"
         }
     }
-    DEFAULT_LOGICS = {}
-    DEFAULT_RESOLUTIONS = {
-        "presets": [512, 768, 832, 960, 1024, 1152, 1280, 1536, 2048],
-        "dimensions": ["SDXL_1024x1024", "SD1.5_512x512"]
-    }
     _DEFAULT_SETTINGS = {
         "dialog_size": {"width": 720, "height": 400, "textareaMinHeight": 160},
         "edit_tags_modal_size": {"width": 720, "height": 560},
@@ -416,7 +407,7 @@ class MagicUtils:
             "smart_bracket_escaping": True,
             "standardize_commas": True,
         },
-        # 多功能提示词框 · 翻译使用的 LLM 配置名（键名与 userdata/llm_settings.txt 一致，与 MagicPromptReplace 共用）
+        # 多功能提示词框 · 翻译使用的 LLM 配置名（键名与 userdata/llm_settings.txt 一致）
         "translate_llm_profile": "",
         # 一键翻译：已废弃，请用 translate_mode；保留以兼容旧 settings.txt
         "translate_llm_force": False,
@@ -497,12 +488,6 @@ class MagicUtils:
 
     @classmethod
     def get_llm_config(cls): return cls._load_dual_data("llm_settings.txt", cls.DEFAULT_LLM)
-    @classmethod
-    def get_rules_config(cls): return cls._load_dual_data("replace_rules.txt", {}) 
-    @classmethod
-    def get_resolutions_config(cls): return cls._load_dual_data("resolutions.txt", cls.DEFAULT_RESOLUTIONS)
-    @classmethod
-    def get_logic_config(cls): return cls._load_dual_data("logic_rules.json", cls.DEFAULT_LOGICS)
 
 # --- Danbooru 远端 API 配置 ---
 DANBOORU_API_BASE = "https://danbooru.donmai.us"
@@ -849,19 +834,13 @@ def ma_invalidate_preset_tags_cache():
 @PromptServer.instance.routes.get("/volt/ma/get_config")
 async def get_config(request):
     return web.json_response({
-        "llm": MagicUtils.get_llm_config(), 
-        "rules": MagicUtils.get_rules_config(), 
-        "resolutions": MagicUtils.get_resolutions_config(),
-        "logics": MagicUtils.get_logic_config()
+        "llm": MagicUtils.get_llm_config(),
     })
 
 @PromptServer.instance.routes.post("/volt/ma/save_config")
 async def save_config(request):
     data = await request.json()
     if "llm" in data: MagicUtils._save_user_data("llm_settings.txt", data["llm"])
-    if "rules" in data: MagicUtils._save_user_data("replace_rules.txt", data["rules"])
-    if "resolutions" in data: MagicUtils._save_user_data("resolutions.txt", data["resolutions"])
-    if "logics" in data: MagicUtils._save_user_data("logic_rules.json", data["logics"])
     return web.json_response({"status": "success"})
 
 
@@ -2071,96 +2050,6 @@ async def ma_post_prompt_history(request):
         return web.json_response({"status": "error", "message": str(e)}, status=500)
 
 
-@PromptServer.instance.routes.post("/volt/ma/delete_file")
-async def delete_file(request):
-    try:
-        data = await request.json()
-        filename = data.get("filename")
-        subfolder = data.get("subfolder", "")
-        if ".." in filename or "/" in filename or "\\" in filename: return web.json_response({"status": "error"})
-        
-        input_dir = folder_paths.get_input_directory()
-        target_dir = os.path.join(input_dir, subfolder)
-        file_path = os.path.join(target_dir, filename)
-
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            return web.json_response({"status": "success"})
-        return web.json_response({"status": "error", "message": "Not found"})
-    except Exception as e: return web.json_response({"status": "error", "message": str(e)})
-
-@PromptServer.instance.routes.post("/volt/ma/rename_file")
-async def rename_file(request):
-    try:
-        data = await request.json()
-        old_name = data.get("old_name")
-        new_name = data.get("new_name")
-        subfolder = data.get("subfolder", "")
-        
-        input_dir = folder_paths.get_input_directory()
-        target_dir = os.path.join(input_dir, subfolder)
-        old_path = os.path.join(target_dir, old_name)
-        new_path = os.path.join(target_dir, new_name)
-
-        if os.path.exists(old_path) and not os.path.exists(new_path):
-            os.rename(old_path, new_path)
-            return web.json_response({"status": "success"})
-        return web.json_response({"status": "error"})
-    except Exception as e: return web.json_response({"status": "error", "message": str(e)})
-
-@PromptServer.instance.routes.post("/volt/ma/clear_clipspace")
-async def clear_clipspace(request):
-    try:
-        input_dir = folder_paths.get_input_directory()
-        clipspace_dir = os.path.join(input_dir, "clipspace")
-        pasted_dir = os.path.join(input_dir, "pasted")
-        clipspace_count = 0
-        pasted_count = 0
-        for target_dir in [clipspace_dir, pasted_dir]:
-            if not os.path.exists(target_dir):
-                continue
-            for f in os.listdir(target_dir):
-                file_path = os.path.join(target_dir, f)
-                try:
-                    if os.path.isfile(file_path) or os.path.islink(file_path):
-                        os.unlink(file_path)
-                        if target_dir == clipspace_dir:
-                            clipspace_count += 1
-                        else:
-                            pasted_count += 1
-                except Exception:
-                    pass
-
-        return web.json_response({
-            "status": "success",
-            "clipspace_count": clipspace_count,
-            "pasted_count": pasted_count,
-            "total_count": clipspace_count + pasted_count
-        })
-    except Exception as e:
-        return web.json_response({"status": "error", "message": str(e)})
-
-@PromptServer.instance.routes.get("/volt/ma/get_file_list")
-async def get_file_list(request):
-    try:
-        input_dir = folder_paths.get_input_directory()
-        files = []
-        
-        if os.path.exists(input_dir):
-            for f in os.listdir(input_dir):
-                if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff')):
-                    files.append(f)
-        
-        def get_mtime(fname):
-            p = os.path.join(input_dir, fname)
-            if os.path.exists(p): return os.path.getmtime(p)
-            return 0
-
-        files.sort(key=get_mtime, reverse=True)
-        return web.json_response({"files": files})
-    except Exception as e:
-        return web.json_response({"files": [], "error": str(e)})
-
 @PromptServer.instance.routes.get("/volt/ma/danbooru_autocomplete")
 async def ma_danbooru_autocomplete(request):
     """Danbooru 补全：支持远端（默认）和本地预设库（source=preset）两种数据源。
@@ -2637,133 +2526,3 @@ async def ma_danbooru_check_connection(request):
     except Exception as e:
         return web.json_response({"ok": False, "message": str(e)})
 
-
-# --- 更新检测 API ---
-@PromptServer.instance.routes.get("/volt/ma/check_update")
-async def check_update(request):
-    """
-    检查更新：从 GitHub 获取最新版本号和 README 内容
-    支持测试模式：添加 ?test=true 参数可以返回模拟的更新数据
-    """
-    try:
-        # 检查是否为测试模式
-        test_mode = request.query.get('test', '').lower() == 'true'
-        
-        if test_mode:
-            # 测试模式：返回模拟的更新数据
-            current_version = "1.3.8"
-            # 模拟一个更新的版本
-            latest_version = "1.3.7"
-            has_update = True
-            
-            # 读取本地 README 文件作为测试数据
-            readme_path = os.path.join(BASE_DIR, "README.md")
-            readme_text = ""
-            if os.path.exists(readme_path):
-                try:
-                    with open(readme_path, 'r', encoding='utf-8') as f:
-                        readme_text = f.read()
-                except:
-                    pass
-            
-            # 从 README 中提取更新信息
-            update_info = ""
-            if readme_text:
-                version_section_match = re.search(r'##\s*[📝版本更新介绍|Version Update Introduction].*?(?=##|$)', readme_text, re.DOTALL | re.IGNORECASE)
-                if version_section_match:
-                    update_info = version_section_match.group(0)
-                else:
-                    update_match = re.search(r'V?\d+\.\d+\.\d+.*?(?=V?\d+\.\d+\.\d+|$)', readme_text, re.DOTALL)
-                    if update_match:
-                        update_info = update_match.group(0)
-            
-            return web.json_response({
-                "current_version": current_version,
-                "latest_version": latest_version,
-                "has_update": has_update,
-                "update_info": update_info,
-                "test_mode": True  # 标记这是测试模式
-            })
-        
-        # 正常模式：从 GitHub 获取
-        current_version = "1.3.8"  # Current version / 当前版本号
-        repo_url = "https://api.github.com/repos/shigjfg/ComfyUI-Magic-Assistant"
-        
-        async with aiohttp.ClientSession() as session:
-            # 获取最新 release 版本
-            async with session.get(f"{repo_url}/releases/latest") as resp:
-                if resp.status == 200:
-                    release_data = await resp.json()
-                    latest_version = release_data.get("tag_name", "").lstrip("vV")
-                    latest_version = latest_version or release_data.get("name", "").lstrip("vV")
-                else:
-                    # 如果没有 release，尝试从 tags 获取
-                    async with session.get(f"{repo_url}/tags") as tags_resp:
-                        if tags_resp.status == 200:
-                            tags_data = await tags_resp.json()
-                            if tags_data and len(tags_data) > 0:
-                                latest_version = tags_data[0].get("name", "").lstrip("vV")
-                            else:
-                                latest_version = None
-                        else:
-                            latest_version = None
-            
-            # 获取 README 内容
-            async with session.get(f"{repo_url}/readme") as readme_resp:
-                if readme_resp.status == 200:
-                    readme_data = await readme_resp.json()
-                    readme_content = readme_data.get("content", "")
-                    # Base64 解码
-                    readme_text = base64.b64decode(readme_content).decode('utf-8')
-                else:
-                    readme_text = ""
-        
-        # 解析版本号比较
-        def version_compare(v1, v2):
-            """比较版本号，返回 True 如果 v1 < v2"""
-            if not v1 or not v2:
-                return False
-            try:
-                v1_parts = [int(x) for x in v1.split('.')]
-                v2_parts = [int(x) for x in v2.split('.')]
-                max_len = max(len(v1_parts), len(v2_parts))
-                v1_parts += [0] * (max_len - len(v1_parts))
-                v2_parts += [0] * (max_len - len(v2_parts))
-                for i in range(max_len):
-                    if v1_parts[i] < v2_parts[i]:
-                        return True
-                    elif v1_parts[i] > v2_parts[i]:
-                        return False
-                return False
-            except:
-                return False
-        
-        has_update = latest_version and version_compare(current_version, latest_version)
-        
-        # 从 README 中提取更新信息
-        update_info = ""
-        if readme_text and has_update:
-            # 查找版本更新介绍部分
-            version_section_match = re.search(r'##\s*[📝版本更新介绍|Version Update Introduction].*?(?=##|$)', readme_text, re.DOTALL | re.IGNORECASE)
-            if version_section_match:
-                update_info = version_section_match.group(0)
-            else:
-                # 如果没有找到，尝试查找最近的更新内容
-                update_match = re.search(r'V?\d+\.\d+\.\d+.*?(?=V?\d+\.\d+\.\d+|$)', readme_text, re.DOTALL)
-                if update_match:
-                    update_info = update_match.group(0)
-        
-        return web.json_response({
-            "current_version": current_version,
-            "latest_version": latest_version,
-            "has_update": has_update,
-            "update_info": update_info
-        })
-    except Exception as e:
-        return web.json_response({
-            "current_version": "1.3.7",
-            "latest_version": None,
-            "has_update": False,
-            "update_info": "",
-            "error": str(e)
-        })

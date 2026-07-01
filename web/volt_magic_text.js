@@ -7072,10 +7072,10 @@ window.showPromptEditorModal = async function(node, nodeSeed) {
             selBrackets,
         );
 
-        /* —— 3 · 翻译（LLM 与 MagicPromptReplace 共用 llm_settings.txt）—— */
+        /* —— 3 · 翻译（LLM 配置保存到 userdata/llm_settings.txt）—— */
         const panel3 = mkCollapsible(
             magicT("3 · 翻译功能设置"),
-            magicT("选择翻译调用的 LLM 配置；「管理 LLM」与「多功能AI提示词替换」节点的配置中心写入同一文件 userdata/llm_settings.txt。"),
+            magicT("选择翻译调用的 LLM 配置；「管理 LLM」会写入 userdata/llm_settings.txt。"),
             false,
         );
         const p3intro = document.createElement("div");

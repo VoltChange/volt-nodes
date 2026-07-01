@@ -1,7 +1,0 @@
-{
-    "⚖️ 取大值 (Max)": "IF a > b RETURN a\nRETURN b",
-    "⚖️ 取小值 (Min)": "IF a < b RETURN a\nRETURN b",
-    "✖️ 乘法 (Scale)": "RETURN w * b, h * b",
-    "➗ 除法 (Divide)": "RETURN w / b, h / b",
-    "1️⃣ 自定义测试": "IF w > 1024 RETURN 1024, 1024\nRETURN w, h"
-}
